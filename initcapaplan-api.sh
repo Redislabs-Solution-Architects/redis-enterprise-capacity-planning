@@ -1,5 +1,40 @@
 #!/bin/bash
 
+
+# Help                                                     
+
+Help()
+{
+   # Display Help
+   echo "This script aims to get information from Redis Enterprise Cluster using its REST API and populate a Redis database in order to perform capacity planning."
+   echo
+   echo "Syntax: scriptTemplate [-h|a|r|p]"
+   echo "options:"
+   echo "h     Print this Help."
+   echo "a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost"
+   echo "r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost"
+   echo "p     Port of the Redis Database which will host the generated data from this script. Default=6379"
+   echo
+}
+
+while getopts h:a:r:p: flag
+do
+    case "${flag}" in
+        h) Help
+              exit;;
+        a) # Hostname of the API
+          redis_cluster_api_url=${OPTARG};;
+        r) # Hostname of the redis database to host data
+          redis_hostname=${OPTARG};;
+        p) # Port of the redis database to host data
+          redis_port=${OPTARG};;
+        \?) # Invalid option
+         echo "Error: Invalid option"
+         exit;;
+    esac
+done
+
+#echo "$redis_cluster_api_url"
 ##Path config
 #export PATH="/opt/redislabs/bin:$PATH"
 
@@ -8,19 +43,32 @@ export LC_NUMERIC="en_US.UTF-8"
 
 #To make Inputs with
 
-if [[ "$1" == "" ]]
+if [ -z $redis_cluster_api_url ]
   then
-    echo "No arguments supplied"
-    redis_cluster_api_url="cluster.dev-pierre-lab.demo.redislabs.com"
-else redis_cluster_api_url=$1
+    echo "No arguments supplied for API hostname. Using default "
+    redis_cluster_api_url="localhost"
 fi
 
-##Utility redis database
-EXIST=`redis-cli EXISTS PLOptimizerVersion`
-if [ "$EXIST" == "1" ]; then
-redis-cli flushdb async
+if [ -z $redis_hostname ]
+  then
+    echo "No arguments supplied for Redis hostname. Using default."
+    redis_hostname="localhost"
 fi
-redis-cli SET PLOptimizerVersion 0.0000001alpha
+
+if [ -z $redis_port ]
+  then
+    echo "No arguments supplied for Redis Port. Using default. "
+    redis_port=6379
+fi
+
+redis="redis-cli -h $redis_hostname -p $redis_port"
+
+##Utility redis database
+EXIST=`redis-cli -h $redis_hostname -p $redis_port EXISTS PLOptimizerVersion`
+if [ "$EXIST" == "1" ]; then
+redis-cli -h $redis_hostname -p $redis_port flushdb async
+fi
+redis-cli -h $redis_hostname -p $redis_port SET PLOptimizerVersion 0.0000001alpha
 
 # Json Parsing functions
 parse_bdbs_json_objects() {
@@ -33,14 +81,14 @@ parse_bdbs_json_objects() {
   local replication=$(jq -r '.replication' <<< "${json_object}")
   local dbid="db:${uid}"
   local memory_size_gb=$(awk "BEGIN {print int($memory_size/1024/1024/1024)}")
-  redis-cli hset $dbid db-id $dbid db-name $db_name number-shards $shards_count shard_placement $shards_placement replication $replication memory_limit $memory_size_gb
-  redis-cli zadd db $memory_size_gb $dbid
+  echo $($redis hset $dbid db-id $dbid db-name $db_name number-shards $shards_count shard_placement $shards_placement replication $replication memory_limit $memory_size_gb)
+  echo $($redis zadd db $memory_size_gb $dbid)
   local bdbsstatsjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/bdbs/stats/last/$uid)
   local responsetoget=$(echo "${bdbsstatsjson}" | jq -c '.')
     while read -r rows; do
       local memory_used=$(jq -r '.used_memory' <<< "${rows}")
       local memory_used_gb=$(awk "BEGIN {printf \"%.2f\", $memory_used/1024/1024/1024}")
-      redis-cli hset $dbid memory_used $memory_used_gb
+      echo $($redis hset $dbid memory_used $memory_used_gb)
     done <<< "$(echo "${responsetoget}" | jq -c '.[]')"
   #endpoints
   #local endpoint_uid =$(jq -r '.endpoints[].uid' <<< "${json_object}")
@@ -55,15 +103,15 @@ parse_nodes_json_objects() {
   local total_memory=$(jq -r '.total_memory' <<< "${json_object}")
   local node_id="node:${uid}"
   local total_available_memory=$(awk "BEGIN {printf \"%.2f\", 0.82*$total_memory/1024/1024/1024}")
-  redis-cli hset $node_id node-id $node_id rack-id $rack_id number-shards $shards_count total_available_memory $total_available_memory
-  redis-cli sadd racks $rack_id
+  echo $($redis hset $node_id node-id $node_id rack-id $rack_id number-shards $shards_count total_available_memory $total_available_memory)
+  echo $($redis sadd racks $rack_id)
   local nodestatsjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/nodes/stats/last/$uid)
   local responsetoget=$(echo "${nodestatsjson}" | jq -c '.')
     while read -r rows; do
       local available_memory=$(jq -r '.provisional_memory' <<< "${rows}")
       local available_memory_gb=$(awk "BEGIN {printf \"%.2f\", $available_memory/1024/1024/1024}")
-      redis-cli hset $node_id available_memory $available_memory_gb
-      redis-cli zadd nodes $available_memory_gb $node_id
+      echo $($redis hset $node_id available_memory $available_memory_gb)
+      echo $($redis zadd nodes $available_memory_gb $node_id)
     done <<< "$(echo "${responsetoget}" | jq -c '.[]')"
 }
 
@@ -79,9 +127,9 @@ parse_shards_json_objects() {
   local node_id="node:${node_uid}"
   local db_id="db:${bdb_uid}"
   local zdbsh="${db_id}:shards"
-  redis-cli hset $shard_id shard-id $shard_id node-id $node_id db-id $db_id role $role slots $slots status $status
-  redis-cli sadd shards $shard_id
-  redis-cli sadd $zdbsh $shard_id
+  echo $($redis hset $shard_id shard-id $shard_id node-id $node_id db-id $db_id role $role slots $slots status $status)
+  echo $($redis sadd shards $shard_id)
+  echo $($redis sadd $zdbsh $shard_id)
   local shardstatsjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/shards/stats/last/$uid)
   local responsetoget=$(echo "${shardstatsjson}" | jq -c '.')
     while read -r rows; do
@@ -94,7 +142,7 @@ parse_shards_json_objects() {
             local used_memory_nb_final=$(awk "BEGIN {printf \"%.2f\", $used_memory_int/1024/1024/1024}")
             local used_final="${used_memory_nb_final}G"
         fi
-      redis-cli hset $shard_id used_memory $used_final
+      echo $($redis hset $shard_id used_memory $used_final)
     done <<< "$(echo "${responsetoget}" | jq -c '.[]')"
 
 }
@@ -133,15 +181,15 @@ shardsjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:ap
 
 ##Check if the cluster is rack-aware
 isRackAware=true
-redis-cli  SET isRackAware $isRackAware
-NodeRack=`redis-cli  hget node:1 rack-id`
+redis-cli -h $redis_hostname -p $redis_port  SET isRackAware $isRackAware
+NodeRack=`redis-cli -h $redis_hostname -p $redis_port  hget node:1 rack-id`
 if [ "$NodeRack" = "-" ]; then
     isRackAware=false
-    redis-cli  SET isRackAware $isRackAware
+    redis-cli -h $redis_hostname -p $redis_port  SET isRackAware $isRackAware
 fi
 
 # LUA TO FINALIZE POPULATION
-redis-cli --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 1
-redis-cli --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 5
-redis-cli --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 25
-redis-cli --raw EVAL "$(cat lua/capaplan.lua)" 0 CORR
+redis-cli -h $redis_hostname -p $redis_port --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 1
+redis-cli -h $redis_hostname -p $redis_port --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 5
+redis-cli -h $redis_hostname -p $redis_port --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 25
+redis-cli -h $redis_hostname -p $redis_port --raw EVAL "$(cat lua/capaplan.lua)" 0 CORR

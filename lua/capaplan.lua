@@ -100,7 +100,7 @@ local function correspondanceShards()
         local shardsSet = redis.call("SMEMBERS", item .. ":shards")
         local mem_limit = tonumber(redis.call("HGET", item, "memory_limit"))
         local nb_shards = tonumber(redis.call("HGET", item, "number-shards"))
-        local replication = (redis.call("HGET", item, "replication") == "enabled")
+        local replication = (redis.call("HGET", item, "replication") == "enabled" or redis.call("HGET", item, "replication") == "true")
         if replication then
             nb_shards = nb_shards * 2
         end
@@ -736,7 +736,7 @@ local function capaUpDB()
     local showPlan = false
     for i,db in ipairs(dbSet) do
         local dbscore = tonumber(redis.call("ZSCORE", "db", db))
-        local replication = (redis.call("HGET", db, "replication") == "enabled")
+        local replication = (redis.call("HGET", db, "replication") == "enabled" or redis.call("HGET", db, "replication") == "true")
         if replication then
             if dbscore == 2 then
                 canUpscale(db,10,1,true,showPlan,internal)
