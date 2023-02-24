@@ -52,7 +52,7 @@ The script needs to be executed from a node of the Redis Enterprise cluster
 ### with REST API
 
 ```bash
-./initcapaplan-rladmin.sh [redis-enterprise-api-host]
+./initcapaplan-api.sh [redis-enterprise-api-host]
 ```
 
 ### for local testing
