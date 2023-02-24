@@ -77,7 +77,7 @@ Usefull to:
 ### Help
 
 ```bash
-redis-cli --raw EVAL "$(cat lua/capaplan.lua )" HELP
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 HELP
 ```
 
 > This is the Main help message. This script permits you to execute > several Actions
