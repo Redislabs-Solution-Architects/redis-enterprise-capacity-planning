@@ -72,7 +72,7 @@ if [ "$NodeRack" = "-" ]; then
     bdb-cli $bdbid SET isRackAware $isRackAware
 fi
 
-bdb-cli $bdbid EVAL "$(cat capaplan.lua)" 0 CAPA 1
-bdb-cli $bdbid EVAL "$(cat capaplan.lua)" 0 CAPA 5
-bdb-cli $bdbid EVAL "$(cat capaplan.lua)" 0 CAPA 25
-bdb-cli $bdbid EVAL "$(cat capaplan.lua)" 0 CORR
+bdb-cli $bdbid EVAL "$(cat lua/capaplan.lua)" 0 CAPA 1
+bdb-cli $bdbid EVAL "$(cat lua/capaplan.lua)" 0 CAPA 5
+bdb-cli $bdbid EVAL "$(cat lua/capaplan.lua)" 0 CAPA 25
+bdb-cli $bdbid EVAL "$(cat lua/capaplan.lua)" 0 CORR

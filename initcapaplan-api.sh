@@ -6,16 +6,21 @@
 #To make sure we deal with float with dots
 export LC_NUMERIC="en_US.UTF-8"
 
+#To make Inputs with
+
+if [[ "$1" == "" ]]
+  then
+    echo "No arguments supplied"
+    redis_cluster_api_url="cluster.dev-pierre-lab.demo.redislabs.com"
+else redis_cluster_api_url=$1
+fi
+
 ##Utility redis database
 EXIST=`redis-cli EXISTS PLOptimizerVersion`
 if [ "$EXIST" == "1" ]; then
 redis-cli flushdb async
 fi
 redis-cli SET PLOptimizerVersion 0.0000001alpha
-
-#To make Inputs with
-redis_cluster_api_url="cluster.dev-pierre-lab.demo.redislabs.com"
-
 
 # Json Parsing functions
 parse_bdbs_json_objects() {
@@ -135,7 +140,7 @@ if [ "$NodeRack" = "-" ]; then
 fi
 
 # LUA TO FINALIZE POPULATION
-redis-cli --raw EVAL "$(cat capaplan.lua)" 0 CAPA 1
-redis-cli --raw EVAL "$(cat capaplan.lua)" 0 CAPA 5
-redis-cli --raw EVAL "$(cat capaplan.lua)" 0 CAPA 25
-redis-cli --raw EVAL "$(cat capaplan.lua)" 0 CORR
+redis-cli --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 1
+redis-cli --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 5
+redis-cli --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 25
+redis-cli --raw EVAL "$(cat lua/capaplan.lua)" 0 CORR

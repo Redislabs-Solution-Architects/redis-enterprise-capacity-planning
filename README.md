@@ -30,20 +30,38 @@ The informations and data about a Redis Enterprise Cluster and its nodes, databa
 
 Thus the data can be directly accessed with Redis Commands.
 
-Nevertheless by care not to be intrusive I made the choice for this prototype not to be intrusive and to not touch the existing and will be using a new Redis database to host the data we need.
+Nevertheless, I made the choice for this prototype not to be intrusive and to not touch the existing and will be using a new Redis database to host the data we need.
 
-As well I made the choice for now to use the result of **rladmin** commands to populate this database.
-There is no REST API permitting to retrieve the **available_provisional_memory** and the **total_available_provisional_memory** (verify terms)
+As well I made the choice for now to offer several ways to populate the database:
+
+- Using **rladmin** commands.
+- Using the **Redis Enterprise REST API**
 
 *Limitation: Doing so the state and data of a cluster need to be manually refreshed. Industrialisation would need to be take in consideration.*
 
 ## Initialization
 
+### with rladmin
+
+The script needs to be executed from a node of the Redis Enterprise cluster
+
 ```bash
-./initcapaplan.sh
+./initcapaplan-rladmin.sh
 ```
 
-This script will:
+### with REST API
+
+```bash
+./initcapaplan-rladmin.sh [redis-enterprise-api-host]
+```
+
+### for local testing
+
+```bash
+./initcapaplan-test.sh 
+```
+
+**This script will:**
 
 1. Create the Redis database is not exist
 2. Populate the Redis database
@@ -53,14 +71,14 @@ This script will:
 ### Help
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" HELP
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" HELP
 ```
 
 > This is the Main help message. This script permits you to execute > several Actions
 >
 > Usage:
 >
-> redis-cli --raw EVAL "$(cat capaplan.lua )" 0 [action] ... [Options]
+> redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 [action] ... [Options]
 >
 > Arguments:
 >
@@ -76,11 +94,11 @@ redis-cli --raw EVAL "$(cat capaplan.lua )" HELP
 >
 > To get Help for any action:
 > ```bash
-> redis-cli --raw EVAL "$(cat capaplan.lua )" 0 [action] Help
+> redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 [action] Help
 > ```
 > OR
 > ```bash
-> redis-cli --raw EVAL "$(cat capaplan.lua )" 0 [action] -H
+> redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 [action] -H
 > ```
 
 ### Capacity
@@ -90,7 +108,7 @@ redis-cli --raw EVAL "$(cat capaplan.lua )" HELP
 This permits to calculate the capacity of the Cluster to host shards with a given capacity ie. memory size.
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" 0 CAPACITY Help
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 CAPACITY Help
 ```
 
 Calculate the actual capacity of the Cluster, Nodes & Racks
@@ -103,13 +121,13 @@ Arguments:
 To determine if your Cluster can host 25G shards annd how many of them on the Cluster, on each Node, on each Rack:
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" 0 CAPACITY 25
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 CAPACITY 25
 ```
 
 ### Correspondance
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" 0 CORRESPONDANCE Help
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 CORRESPONDANCE Help
 ```
 
 > Create correspondance between master and replica shards and populate Sets and Sorted sets permitting to make Capacity calculation & Optimisations.\
@@ -122,7 +140,7 @@ redis-cli --raw EVAL "$(cat capaplan.lua )" 0 CORRESPONDANCE Help
 #### Help Create
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" 0 CANCREATE Help
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 CANCREATE Help
 ```
 >
 > Permits to determine if in the actual state of the Cluster whether you will be able or not to create a given database.
@@ -138,7 +156,7 @@ redis-cli --raw EVAL "$(cat capaplan.lua )" 0 CANCREATE Help
 Can I create a database with 50G of memory_limit, 1 master shard with replication?
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" 0 CANCREATE 50 1 true
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 CANCREATE 50 1 true
 ```
 
 **Example of response:**
@@ -152,7 +170,7 @@ redis-cli --raw EVAL "$(cat capaplan.lua )" 0 CANCREATE 50 1 true
 #### Help Upscale
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" 0 CANUPSCALE Help
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 CANUPSCALE Help
 ```
 
 > Permits to determine if in the actual state of the Cluster whether you will be able or not to upscale a given database. To a certain amount of memory and shards.
@@ -171,7 +189,7 @@ Can I upscale the database db:2 up to 100G of memory_limit, 2 master shards with
 In the case it is not possible directly I want to see the action plan to make it happen.
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" 0 CANUPSCALE db:2 100 2 true true
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 CANUPSCALE db:2 100 2 true true
 ```
 
 **Examples of response:**
@@ -196,7 +214,7 @@ redis-cli --raw EVAL "$(cat capaplan.lua )" 0 CANUPSCALE db:2 100 2 true true
 #### Help Optimize
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" 0 OPTIMIZE Help
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 OPTIMIZE Help
 ```
 
 > Optimize shard placement
@@ -230,7 +248,7 @@ It would migrate the shards to the best candidate node.
 The best candidate is a Node which cannot accept anymore 25G shards and is far to be able.
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" 0 OPTIMIZE C 1 5 1
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 OPTIMIZE C 1 5 1
 ```
 
 **Examples of response:**
@@ -249,7 +267,7 @@ To ask for an optimization plan with Node scope to migrate replica shards with a
 It would migrate the shards to nodes in respect of High-Availability and Rack-Awareness constraints.
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" 0 OPTIMIZE N node:4 1 5 1
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 OPTIMIZE N node:4 1 5 1
 ```
 
 **Examples of response:**
@@ -268,7 +286,7 @@ To ask for an optimization plan with Rack/AZ scope to migrate replica shards wit
 It would migrate the shards to nodes in respect of High-Availability and Rack-Awareness constraints.
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" 0 OPTIMIZE R europe-west1-c 1 5 1
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 OPTIMIZE R europe-west1-c 1 5 1
 ```
 
 **Examples of responses:**
@@ -292,7 +310,7 @@ To ask for an optimization plan with Database scope to migrate replica shards wi
 It would migrate the shards to nodes in respect of High-Availability and Rack-Awareness constraints.
 
 ```bash
-redis-cli --raw EVAL "$(cat capaplan.lua )" 0 OPTIMIZE D db:4
+redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 OPTIMIZE D db:4
 ```
 
 **Examples of response:**
