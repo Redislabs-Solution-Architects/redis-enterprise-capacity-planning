@@ -106,7 +106,7 @@ if [ "$NodeRack" = "-" ]; then
     redis-cli  SET isRackAware $isRackAware
 fi
 
-redis-cli --raw EVAL "$(cat capaplan.lua)" 0 CAPA 1
-redis-cli --raw EVAL "$(cat capaplan.lua)" 0 CAPA 5
-redis-cli --raw EVAL "$(cat capaplan.lua)" 0 CAPA 25
-redis-cli --raw EVAL "$(cat capaplan.lua)" 0 CORR
+redis-cli --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 1
+redis-cli --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 5
+redis-cli --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 25
+redis-cli --raw EVAL "$(cat lua/capaplan.lua)" 0 CORR
