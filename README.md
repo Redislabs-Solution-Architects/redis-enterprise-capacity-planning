@@ -118,7 +118,7 @@ Arguments:
 
 #### Example of Usage - Capacity
 
-To determine if your Cluster can host 25G shards annd how many of them on the Cluster, on each Node, on each Rack:
+To determine if your Cluster can host 25G shards and how many of them on the Cluster, on each Node, on each Rack:
 
 ```bash
 redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 CAPACITY 25
@@ -245,7 +245,7 @@ To ask for an optimization plan with Cluster scope to migrate replica shards wit
 It would migrate the shards to nodes in respect of High-Availability and Rack-Awareness constraints.\
 It would migrate the shards to the best candidate node.
 
-The best candidate is a Node which cannot accept anymore 25G shards and is far to be able.
+The best candidate is a Node which can not accept anymore 25G shards and is far to be able.
 
 ```bash
 redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 OPTIMIZE C 1 5 1
