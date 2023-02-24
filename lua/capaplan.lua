@@ -957,11 +957,11 @@ if message == "" or message == nil then
     if lose == 1 then
         message = "Wrong set of options. Did you enter action, scope and all the needed options?"
     elseif lose == 2 then
-        message = "Again: Wrong set of options. Did you enter action, scope and all the needed options?"
+        message = "Again: Wrong set of options. Are you sure you entered action, scope and all the needed options?"
     elseif lose == 3 then
-        message = "Maybe you should read the Help or the documentation ..."
+        message = "Maybe you should read the Help section or the documentation ..."
     elseif lose == 4 then
-        message = "Unfortunately Google or ChatGPT cann nnot help you here ..."
+        message = "Unfortunately Google or ChatGPT can not help you here ..."
     elseif lose == 5 then
         message = "Just use the command : \n redis-cli -h <host> -p <port> EVAL \"$(cat lua/capaplan.lua )\" 0 Help \n OR \n redis-cli --raw -h <host> -p <port> EVAL \"$(cat lua/capaplan.lua )\" 0 [ACTION] Help"
     end
