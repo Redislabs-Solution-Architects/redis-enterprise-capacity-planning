@@ -968,6 +968,6 @@ if message == "" or message == nil then
         Help()
     end
 else
-    redis.call("SET", "loser", 0) 
+    redis.call("SET", "loser", 0)
 end
 return message
