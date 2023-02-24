@@ -57,6 +57,12 @@ The script needs to be executed from a node of the Redis Enterprise cluster
 
 ### for local testing
 
+In order te test/validate the usage of the lua script without the need to spin-up a Redis Enterprise Cluster.
+Usefull to:
+
+- Debug/enrich with cost control.
+- Discover quickly
+
 ```bash
 ./initcapaplan-test.sh 
 ```

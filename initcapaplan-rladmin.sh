@@ -11,9 +11,9 @@ nodes=`rladmin status nodes extra all | awk -F '[/ ]+' '/GB/ {print $1,$14,$15,$
 
 nodesinfo=`rladmin status nodes extra all`
 shardsinfo=`rladmin status shards extra all`
-##Fetch nodes innformation and store it to Redis database
+##Fetch nodes information and store it to Redis database
 echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "hset "$1" node-id "$1" rack-id "$22" available_memory "$14" total_available_memory "$15}' | tr -d \*GB | bdb-cli $bdbid
-#to be double validated
+
 echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "hset "$1" node-id "$1" rack-id "$22" available_memory "$14" total_available_memory "$15}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " " $3 " " $4 " " $5 " " $6 " " $7 " 0.0 " $9 " " $10}' | bdb-cli $bdbid
 
 echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd nodes "$14" "$1}' | tr -d \*GB | bdb-cli $bdbid
@@ -28,7 +28,6 @@ echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd rack:"$22" "$14" "$1}' | 
 
 echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "sadd racks "$22}' | tr -d \*GB | bdb-cli $bdbid
 
-
 ##Fetch shards information and store it to Redis database
 
 echo "$shardsinfo" | awk -F '[/ ]+' '/redis/  {print "hset "$3" node-id "$4" db-id "$1" shard-id "$3" role "$5" slots "$6" used_memory "$7" status "$12}' | bdb-cli $bdbid
@@ -36,6 +35,7 @@ echo "$shardsinfo" | awk -F '[/ ]+' '/redis/  {print "hset "$3" node-id "$4" db-
 echo "$shardsinfo" | awk -F '[/ ]+' '/redis/  {print "sadd shards "$3}' | bdb-cli $bdbid
 
 echo "$shardsinfo" | awk -F '[/ ]+' '/redis/  {print "sadd "$1":shards "$3}' | bdb-cli $bdbid
+
 ##Fetch databases information and store it to Redis database
 
 rladmin status databases extra all | awk -F '[/ ]+' '/redis/  {print "hset "$1" db-id "$1" db-name "$2" number-shards "$5" shard_placement "$6" replication "$7}' | tr -d \*GB | bdb-cli $bdbid
@@ -43,6 +43,7 @@ rladmin status databases extra all | awk -F '[/ ]+' '/redis/  {print "hset "$1" 
 response=$(curl -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:application/json" https://localhost:9443/v1/bdbs?fields=uid,memory_size)
 
 bdb-cli $bdbid unlink db
+
 # Iterate over each object in the json response
 for row in $(echo "${response}" | jq -r '.[] | @base64'); do
     _jq() {
@@ -60,6 +61,7 @@ for row in $(echo "${response}" | jq -r '.[] | @base64'); do
 done
 
 ##Fetch endpoints information and store it to Redis database
+##Not used yet but may be usefull to migrate endpoints if required
 
 rladmin status endpoints extra all | awk -F '[/ ]+' '/endpoint/  {print "hset "$3" endpoint-id "$3" db-id "$1" node-id "$4" role "$5" status "$7}' | tr -d \*GB | bdb-cli $bdbid
 

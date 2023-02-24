@@ -94,6 +94,7 @@ for row in $(echo "${response}" | jq -r '.[] | @base64'); do
 done
 
 ##Fetch endpoints information and store it to Redis database
+##Not used yet but may be usefull to migrate endpoints if required
 
 echo "$endpointsinfo" | awk -F '[/ ]+' '/endpoint/  {print "hset "$3" endpoint-id "$3" db-id "$1" node-id "$4" role "$5" status "$7}' | tr -d \*GB | redis-cli 
 

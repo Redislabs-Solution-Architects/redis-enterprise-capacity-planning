@@ -127,7 +127,8 @@ shardsjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:ap
 
 
 ##Fetch endpoints information and store it to Redis database
-# Data not used => not ported in rest/jsonn approach
+##Not used yet but may be usefull to migrate endpoints if required
+## Data not used => not ported in rest/jsonn approach
 #echo "$endpointsinfo" | awk -F '[/ ]+' '/endpoint/  {print "hset "$3" endpoint-id "$3" db-id "$1" node-id "$4" role "$5" status "$7}' | tr -d \*GB | redis-cli 
 
 ##Check if the cluster is rack-aware
