@@ -41,6 +41,7 @@ As well I made the choice for now to offer several ways to populate the database
 
 ## Initialization
 
+TODO: add parametrisation for API username/password
 ### with rladmin
 
 The script needs to be executed from a node of the Redis Enterprise cluster
