@@ -952,6 +952,20 @@ if (string.upper(action) == "OPTIMIZE" or string.upper(action) == "O") then
 end
 
 if message == "" or message == nil then
-    message = "Wrong set of options. Did you enter action, scope and all the needed options?"
+    redis.call("INCRBY", "loser", 1)
+    local lose = tonumber(redis.call("GET", "loser"))
+    if lose == 1 then
+        message = "Wrong set of options. Did you enter action, scope and all the needed options?"
+    elseif lose == 2 then
+        message = "Again: Wrong set of options. Did you enter action, scope and all the needed options?"
+    elseif lose == 3 then
+        message = "Maybe you should read the Help or the documentation ..."
+    elseif lose == 4 then
+        message = "Unfortunately Google or ChatGPT cann nnot help you here ..."
+    elseif lose == 5 then
+        message = "Just use the command : \n redis-cli -h <host> -p <port> EVAL \"$(cat lua/capaplan.lua )\" 0 Help \n OR \n redis-cli --raw -h <host> -p <port> EVAL \"$(cat lua/capaplan.lua )\" 0 [ACTION] Help"
+    end
+else
+    redis.call("SET", "loser", 0) 
 end
 return message
