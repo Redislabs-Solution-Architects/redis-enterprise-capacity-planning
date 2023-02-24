@@ -318,7 +318,7 @@ redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 OPTIMIZE D db:4
 > No Plan for node node:1 done. There is no Shard meeting conditions.\
 > No Plan for node node:2 done. There is no Shard meeting conditions.\
 > No Plan for node node:3 done. There is no Shard meeting conditions.\
-> No Plan for node node:4 done. There is no Shard meeting conditions.\
+> No Plan for node node:4 done. There is no Shard meeting conditions.
 
 **OR**
 
