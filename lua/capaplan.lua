@@ -936,14 +936,13 @@ if (string.upper(action) == "OPTIMIZE" or string.upper(action) == "O") then
                 message = message .. ShowSteps()
                 
             end
-        else
+        else 
             message = "Wrong number of Arguments for the ".. action .. " function: \n"
             message = message .. Ousage
         end
     end
 
     if #ARGV == 2 and (string.upper(ARGV[2]) ~= "-H" or string.upper(ARGV[2]) ~= "HELP") then
-
         message = "Wrong number of Arguments for the ".. action .. " function: \n"
         message = message .. Ousage
         
@@ -964,6 +963,9 @@ if message == "" or message == nil then
         message = "Unfortunately Google or ChatGPT can not help you here ..."
     elseif lose == 5 then
         message = "Just use the command : \n redis-cli -h <host> -p <port> EVAL \"$(cat lua/capaplan.lua )\" 0 Help \n OR \n redis-cli --raw -h <host> -p <port> EVAL \"$(cat lua/capaplan.lua )\" 0 [ACTION] Help"
+    elseif lose == 6 then
+        message = "I will make it for you:\n"
+        Help()
     end
 else
     redis.call("SET", "loser", 0) 
