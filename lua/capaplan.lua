@@ -780,7 +780,7 @@ OR
 redis-cli --raw EVAL capaplan.lua 0 [action] -H
  ]]
 
-    message = help
+    message = message .. help
     return message
 end
 
@@ -966,6 +966,12 @@ if message == "" or message == nil then
     elseif lose == 6 then
         message = "I will make it for you:\n"
         Help()
+    elseif  6 < lose and lose < 10  then
+        local pourcentage=100*(lose-6)
+        message = "Again: Wrong set of options. Are you " .. pourcentage .."% sure you entered action, scope and all the needed options?"
+    elseif lose == 10 then
+        message = "10 in a row!!!! Maybe you should take a break..."
+        redis.call("SET", "loser", 1)
     end
 else
     redis.call("SET", "loser", 0)
