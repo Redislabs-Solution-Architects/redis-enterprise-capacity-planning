@@ -361,3 +361,11 @@ redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 OPTIMIZE D db:4
 > rladmin migrate shard 24 preserve_roles target_node 4
 > ```
 > No Plan for node node:2 done. There is no Shard meeting conditions.
+
+## Grafana Dashboard example
+
+Example:
+
+![grafanadahboard](images/capaplan.png)
+
+Json Export for the dashboard into **grafana** directory.

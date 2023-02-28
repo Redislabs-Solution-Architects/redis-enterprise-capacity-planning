@@ -100,7 +100,9 @@ local function correspondanceShards()
         local shardsSet = redis.call("SMEMBERS", item .. ":shards")
         local mem_limit = tonumber(redis.call("HGET", item, "memory_limit"))
         local nb_shards = tonumber(redis.call("HGET", item, "number-shards"))
+        local db_name = redis.call("HGET", item, "db-name")
         local replication = (redis.call("HGET", item, "replication") == "enabled" or redis.call("HGET", item, "replication") == "true")
+        redis.call("HSET", "db:names" , item, db_name)
         if replication then
             nb_shards = nb_shards * 2
         end
@@ -215,7 +217,7 @@ local function canCreate(memory_size,nb_of_shards,replication)
     local nb_nodes_with_capacity = tonumber(redis.call("GET", "nodes:nb:ok:" .. shard_size .. "G"))
     --local nb_racks_with_capacity = tonumber(redis.call("GET","racks:nb:ok:" .. shard_size .. "G" ))
 
-    -- To be cleaned ot all used at that stage
+    -- To be cleaned not all used at that stage
     local v_master_ok = math.floor(nb_of_shards / 2)
     local v_replica_ok = math.floor(nb_of_shards / 2)
     local nodesSet = redis.call("ZREVRANGE", "nodes:" .. shard_size .. "G", 0, -1)
@@ -282,8 +284,10 @@ local function canCreate(memory_size,nb_of_shards,replication)
         message = message .. string.format('\n')
         message = message .. string.format("If you can create this database you can upscale a existing one to this capacity.")
         redis.call("SET", "cancreate:" .. memory_size .. "G", "true")
+        redis.call("ZADD", "db:cancreate",1 , memory_size .. "G")
     else
         redis.call("SET", "cancreate:" .. memory_size .. "G", "false")
+        redis.call("ZADD", "db:cancreate",0 , memory_size .. "G")
     end
     return message
 end
