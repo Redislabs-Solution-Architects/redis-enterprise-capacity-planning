@@ -55,7 +55,6 @@ The script needs to be executed from a node of the Redis Enterprise cluster
 
 > This script aims to get information from Redis Enterprise Cluster using rladmin utility commands and populate a Redis database in order to perform capacity planning.\
 >
-> Syntax: scriptTemplate [a|r|p|h]\
 > options:\
 > -h     Print this Help.\
 > -a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost\
@@ -70,7 +69,6 @@ The script needs to be executed from a node of the Redis Enterprise cluster
 
 > This script aims to get information from Redis Enterprise Cluster using its REST API and populate a Redis database in order to perform capacity planning.\
 >
-> Syntax: scriptTemplate [a|r|p|h]\
 > options:\
 > -h   Print this Help.\
 > -a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost\
@@ -91,7 +89,6 @@ Usefull to:
 
 > This script aims to get information from Redis Enterprise Cluster using its REST API and populate a Redis database in order to perform capacity planning.\
 >
-> Syntax: scriptTemplate [r|p|h]\
 > options:\
 > -h     Print this Help.\
 > -r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost\
