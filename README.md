@@ -53,14 +53,14 @@ The script needs to be executed from a node of the Redis Enterprise cluster
 ./initcapaplan-rladmin.sh
 ```
 
-> This script aims to get information from Redis Enterprise Cluster using rladmin utility commands and populate a Redis database in order to perform capacity planning.
+> This script aims to get information from Redis Enterprise Cluster using rladmin utility commands and populate a Redis database in order to perform capacity planning.\
 >
-> Syntax: scriptTemplate [a|r|p|h]
-> options:
-> h     Print this Help.
-> a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost
-> r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost
-> p     Port of the Redis Database which will host the generated data from this script. Default=6379
+> Syntax: scriptTemplate [a|r|p|h]\
+> options:\
+> -h     Print this Help.\
+> -a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost\
+> -r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost\
+> -p     Port of the Redis Database which will host the generated data from this script. Default=6379
 
 ### with REST API
 
@@ -68,13 +68,13 @@ The script needs to be executed from a node of the Redis Enterprise cluster
 ./initcapaplan-api.sh [redis-enterprise-api-host]
 ```
 
-> This script aims to get information from Redis Enterprise Cluster using its REST API and populate a Redis database in order to perform capacity planning.
+> This script aims to get information from Redis Enterprise Cluster using its REST API and populate a Redis database in order to perform capacity planning.\
 >
-> Syntax: scriptTemplate [a|r|p|h]
-> options:
-> -h     Print this Help.
-> -a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost
-> -r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost
+> Syntax: scriptTemplate [a|r|p|h]\
+> options:\
+> -h   Print this Help.\
+> -a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost\
+> -r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost\
 > -p     Port of the Redis Database which will host the generated data from this script. Default=6379
 
 ### for local testing
@@ -89,13 +89,13 @@ Usefull to:
 ./initcapaplan-test.sh 
 ```
 
-> This script aims to get information from Redis Enterprise Cluster using its REST API and populate a Redis database in order to perform capacity planning.
+> This script aims to get information from Redis Enterprise Cluster using its REST API and populate a Redis database in order to perform capacity planning.\
 >
-> Syntax: scriptTemplate [r|p|h]
-> options:
-> h     Print this Help.
-> r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost
-> p     Port of the Redis Database which will host the generated data from this script. Default=6379
+> Syntax: scriptTemplate [r|p|h]\
+> options:\
+> -h     Print this Help.\
+> -r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost\
+> -p     Port of the Redis Database which will host the generated data from this script. Default=6379
 
 ## How to use it?
 
@@ -162,7 +162,7 @@ redis-cli --raw EVAL "$(cat lua/capaplan.lua )" 0 CORRESPONDANCE Help
 ```
 
 > Create correspondance between master and replica shards and populate Sets and Sorted sets permitting to make Capacity calculation & Optimisations.\
->As well as determining the consumption of shards for the cluster by type 1G , 5G , 25G
+> As well as determining the consumption of shards for the cluster by type 1G , 5G , 25G
 >
 > No Arguments.
 

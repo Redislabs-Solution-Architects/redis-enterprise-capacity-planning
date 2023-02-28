@@ -12,9 +12,9 @@ Help()
    echo
    echo "Syntax: scriptTemplate [r|p|h]"
    echo "options:"
-   echo "h     Print this Help."
-   echo "r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost"
-   echo "p     Port of the Redis Database which will host the generated data from this script. Default=6379"
+   echo "-h     Print this Help."
+   echo "-r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost"
+   echo "-p     Port of the Redis Database which will host the generated data from this script. Default=6379"
    echo
 }
 
