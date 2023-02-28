@@ -96,7 +96,7 @@ db:5              db5G2                       endpoint:5:1                      
 ##Fetch nodes information and store it to Redis database
 
 
-if[[ $nodesinfo == *"FLASH           AVAILABLE_FLASH"* ]]; then
+if [[ $nodesinfo == *"AVAILABLE_FLASH"* ]]; then
 ##CASE FLASH in rladmin response
     echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "hset "$1" node-id "$1" rack-id "$22" available_memory "$14" total_available_memory "$15}' | tr -d \*GB | $redis
 
@@ -114,7 +114,27 @@ if[[ $nodesinfo == *"FLASH           AVAILABLE_FLASH"* ]]; then
     echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd rack:"$22" "$14" "$1}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " 0.0 " $4}' | $redis
 
     echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "sadd racks "$22}' | tr -d \*GB | $redis
+elif [[ $nodesinfo == *"                  "* ]]; then
+## CASE NO FLASH and NO EXTERNAL ADDRESS in rladmin response 
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "hset "$1" node-id "$1" rack-id "$17" available_memory "$13" total_available_memory "$14}' | tr -d \*GB | $redis
+
+    #if M and not G
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "hset "$1" node-id "$1" rack-id "$17" available_memory "$13" total_available_memory "$14}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " " $3 " " $4 " " $5 " " $6 " " $7 " 0.0 " $9 " " $10}' | $redis
+
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd nodes "$13" "$1}' | tr -d \*GB | $redis 
+
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd nodes "$13" "$1}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " 0.0 " $4}' | $redis
+
+    ##Fetch Rack-Id information and store it to Redis Database
+
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd rack:"$17" "$13" "$1}' | tr -d \*GB | $redis
+
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd rack:"$17" "$13" "$1}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " 0.0 " $4}' | $redis
+
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "sadd racks "$17}' | tr -d \*GB | $redis
+
 else
+
 ## CASE NO FLASH in rladmin response 
     echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "hset "$1" node-id "$1" rack-id "$18" available_memory "$14" total_available_memory "$15}' | tr -d \*GB | $redis
 
@@ -181,3 +201,7 @@ redis-cli -h $redis_hostname -p $redis_port --raw EVAL "$(cat lua/capaplan.lua)"
 redis-cli -h $redis_hostname -p $redis_port --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 5
 redis-cli -h $redis_hostname -p $redis_port --raw EVAL "$(cat lua/capaplan.lua)" 0 CAPA 25
 redis-cli -h $redis_hostname -p $redis_port --raw EVAL "$(cat lua/capaplan.lua)" 0 CORR
+redis-cli -h $redis_hostname -p $redis_port --raw EVAL "$(cat lua/capaplan.lua)" 0 CANCREATE 10 1 true
+redis-cli -h $redis_hostname -p $redis_port --raw EVAL "$(cat lua/capaplan.lua)" 0 CANCREATE 50 1 true
+redis-cli -h $redis_hostname -p $redis_port --raw EVAL "$(cat lua/capaplan.lua)" 0 CANCREATE 100 2 true
+redis-cli -h $redis_hostname -p $redis_port --raw EVAL "$(cat lua/capaplan.lua)" 0 CANCREATE 200 4 true
