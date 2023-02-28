@@ -41,7 +41,10 @@ As well I made the choice for now to offer several ways to populate the database
 
 ## Initialization
 
-TODO: add parametrisation for API username/password
+TODO: add option to create database on Redis Enterprise Cluster
+
+**Any of this script will: Populate the Redis database**
+
 ### with rladmin
 
 The script needs to be executed from a node of the Redis Enterprise cluster
@@ -50,11 +53,29 @@ The script needs to be executed from a node of the Redis Enterprise cluster
 ./initcapaplan-rladmin.sh
 ```
 
+> This script aims to get information from Redis Enterprise Cluster using rladmin utility commands and populate a Redis database in order to perform capacity planning.
+>
+> Syntax: scriptTemplate [a|r|p|h]
+> options:
+> h     Print this Help.
+> a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost
+> r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost
+> p     Port of the Redis Database which will host the generated data from this script. Default=6379
+
 ### with REST API
 
 ```bash
 ./initcapaplan-api.sh [redis-enterprise-api-host]
 ```
+
+> This script aims to get information from Redis Enterprise Cluster using its REST API and populate a Redis database in order to perform capacity planning.
+>
+> Syntax: scriptTemplate [a|r|p|h]
+> options:
+> -h     Print this Help.
+> -a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost
+> -r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost
+> -p     Port of the Redis Database which will host the generated data from this script. Default=6379
 
 ### for local testing
 
@@ -68,10 +89,13 @@ Usefull to:
 ./initcapaplan-test.sh 
 ```
 
-**This script will:**
-
-1. Create the Redis database is not exist
-2. Populate the Redis database
+> This script aims to get information from Redis Enterprise Cluster using its REST API and populate a Redis database in order to perform capacity planning.
+>
+> Syntax: scriptTemplate [r|p|h]
+> options:
+> h     Print this Help.
+> r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost
+> p     Port of the Redis Database which will host the generated data from this script. Default=6379
 
 ## How to use it?
 

@@ -8,16 +8,16 @@ Help()
    # Display Help
    echo "This script aims to get information from Redis Enterprise Cluster using its REST API and populate a Redis database in order to perform capacity planning."
    echo
-   echo "Syntax: scriptTemplate [-h|a|r|p]"
+   echo "Syntax: scriptTemplate [a|r|p|h]"
    echo "options:"
-   echo "h     Print this Help."
-   echo "a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost"
-   echo "r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost"
-   echo "p     Port of the Redis Database which will host the generated data from this script. Default=6379"
+   echo "-h     Print this Help."
+   echo "-a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost"
+   echo "-r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost"
+   echo "-p     Port of the Redis Database which will host the generated data from this script. Default=6379"
    echo
 }
 
-while getopts h:a:r:p: flag
+while getopts a:r:p:h flag
 do
     case "${flag}" in
         h) Help
@@ -30,6 +30,7 @@ do
           redis_port=${OPTARG};;
         \?) # Invalid option
          echo "Error: Invalid option"
+         Help
          exit;;
     esac
 done

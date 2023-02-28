@@ -10,7 +10,7 @@ Help()
    # Display Help
    echo "This script aims to get information from Redis Enterprise Cluster using its REST API and populate a Redis database in order to perform capacity planning."
    echo
-   echo "Syntax: scriptTemplate [-h|r|p]"
+   echo "Syntax: scriptTemplate [r|p|h]"
    echo "options:"
    echo "h     Print this Help."
    echo "r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost"
@@ -18,7 +18,7 @@ Help()
    echo
 }
 
-while getopts h:r:p: flag
+while getopts r:p:h flag
 do
     case "${flag}" in
         h) Help
