@@ -4,9 +4,9 @@
 
 The purpose of this material is to offer users of Redis Enterprise an alternative to some actual limitations.
 
-Indeed there are several situations, while the Redis Enterprise Cluster nodes globally have the capacity to host more shards, it is impossible to **directly** make it happen through the UI or the REST API.
+Indeed there are several situations, while the Redis Enterprise Cluster nodes globally have the capacity to host more shards, **it is impossible to directly** make it happen through the UI or the REST API.
 
-At a specific moment the shards placements may not be optimal to make happen some operations like:
+Indeed, at a specific moment the shards placements may not be optimal to make happen some operations like:
 
 1. Create a Database with a given capacity
 2. Update a Database with a new given capacity
