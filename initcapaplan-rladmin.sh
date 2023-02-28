@@ -72,21 +72,43 @@ nodes=`rladmin status nodes extra all | awk -F '[/ ]+' '/GB/ {print $1,$14,$15,$
 nodesinfo=`rladmin status nodes extra all`
 shardsinfo=`rladmin status shards extra all`
 ##Fetch nodes information and store it to Redis database
-echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "hset "$1" node-id "$1" rack-id "$22" available_memory "$14" total_available_memory "$15}' | tr -d \*GB | $redis
+if[[ $nodesinfo == *"FLASH           AVAILABLE_FLASH"* ]]; then
+##CASE FLASH in rladmin response
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "hset "$1" node-id "$1" rack-id "$22" available_memory "$14" total_available_memory "$15}' | tr -d \*GB | $redis
 
-echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "hset "$1" node-id "$1" rack-id "$22" available_memory "$14" total_available_memory "$15}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " " $3 " " $4 " " $5 " " $6 " " $7 " 0.0 " $9 " " $10}' | $redis
+    #if M and nnot G
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "hset "$1" node-id "$1" rack-id "$22" available_memory "$14" total_available_memory "$15}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " " $3 " " $4 " " $5 " " $6 " " $7 " 0.0 " $9 " " $10}' | $redis
 
-echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd nodes "$14" "$1}' | tr -d \*GB | $redis
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd nodes "$14" "$1}' | tr -d \*GB | $redis 
 
-echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd nodes "$14" "$1}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " 0.0 " $4}' | $redis
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd nodes "$14" "$1}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " 0.0 " $4}' | $redis
 
-##Fetch Rack-Id information and store it to Redis Database
+    ##Fetch Rack-Id information and store it to Redis Database
 
-echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd rack:"$22" "$14" "$1}' | tr -d \*GB | $redis
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd rack:"$22" "$14" "$1}' | tr -d \*GB | echo $($redis)
 
-echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd rack:"$22" "$14" "$1}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " 0.0 " $4}' | $redis
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd rack:"$22" "$14" "$1}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " 0.0 " $4}' | $redis
 
-echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "sadd racks "$22}' | tr -d \*GB | $redis
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "sadd racks "$22}' | tr -d \*GB | $redis
+else
+## CASE NO FLASH in rladmin response 
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "hset "$1" node-id "$1" rack-id "$18" available_memory "$14" total_available_memory "$15}' | tr -d \*GB | $redis
+
+    #if M and not G
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "hset "$1" node-id "$1" rack-id "$18" available_memory "$14" total_available_memory "$15}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " " $3 " " $4 " " $5 " " $6 " " $7 " 0.0 " $9 " " $10}' | $redis
+
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd nodes "$14" "$1}' | tr -d \*GB | $redis 
+
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd nodes "$14" "$1}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " 0.0 " $4}' | $redis
+
+    ##Fetch Rack-Id information and store it to Redis Database
+
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd rack:"$18" "$14" "$1}' | tr -d \*GB | $redis
+
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "zadd rack:"$18" "$14" "$1}' | tr -d \*GB | awk '/M/ {print $1 " " $2 " 0.0 " $4}' | $redis
+
+    echo "$nodesinfo" | awk -F '[/ ]+' '/GB/  {print "sadd racks "$18}' | tr -d \*GB | $redis
+fi
 
 ##Fetch shards information and store it to Redis database
 

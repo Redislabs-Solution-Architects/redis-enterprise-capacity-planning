@@ -38,11 +38,15 @@ As well I made the choice for now to offer several ways to populate the database
 - Using the **Redis Enterprise REST API**
 
 *Limitation: Doing so the state and data of a cluster need to be manually refreshed. Industrialisation would need to be take in consideration.*
+## Pre-requisites
 
+For target Redis database : Redis>=6.2
+For the script to execute: jq annd curl
 ## Initialization
 
 TODO: add option to create database on Redis Enterprise Cluster
 TODO: Input parameters for User/password for API
+TODO: add pre-requisites (JQ/CURL)
 
 **Any of this script will: Populate the Redis database**
 
