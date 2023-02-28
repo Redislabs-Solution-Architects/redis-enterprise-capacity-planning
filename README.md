@@ -42,6 +42,7 @@ As well I made the choice for now to offer several ways to populate the database
 ## Initialization
 
 TODO: add option to create database on Redis Enterprise Cluster
+TODO: Input parameters for User/password for API
 
 **Any of this script will: Populate the Redis database**
 
