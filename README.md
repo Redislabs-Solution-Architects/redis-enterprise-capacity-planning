@@ -1,5 +1,34 @@
 # Redis Enterprise Capacity Planning
 
+- [Redis Enterprise Capacity Planning](#redis-enterprise-capacity-planning)
+  - [Intro](#intro)
+  - [Concepts / Architecture](#concepts--architecture)
+  - [Pre-requisites](#pre-requisites)
+  - [Initialization](#initialization)
+    - [with rladmin](#with-rladmin)
+    - [with REST API](#with-rest-api)
+    - [for local testing](#for-local-testing)
+  - [How to use it?](#how-to-use-it)
+    - [Help](#help)
+    - [Capacity](#capacity)
+      - [Help - Capacity](#help---capacity)
+      - [Example of Usage - Capacity](#example-of-usage---capacity)
+    - [Correspondance](#correspondance)
+    - [Can Create ?](#can-create-)
+      - [Help Create](#help-create)
+      - [Example of Usage - Can Create?](#example-of-usage---can-create)
+    - [Can Upscale ?](#can-upscale-)
+      - [Help Upscale](#help-upscale)
+      - [Example of Usage - Can Upscale?](#example-of-usage---can-upscale)
+    - [Optimize](#optimize)
+      - [Help Optimize](#help-optimize)
+      - [Example of Usage - OPTIMIZE](#example-of-usage---optimize)
+        - [Cluster](#cluster)
+        - [Node](#node)
+        - [Rack / AZ](#rack--az)
+        - [Database](#database)
+  - [Grafana Dashboard example](#grafana-dashboard-example)
+
 ## Intro
 
 The purpose of this material is to offer users of Redis Enterprise an alternative to some actual limitations.
