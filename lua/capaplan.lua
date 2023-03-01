@@ -657,7 +657,7 @@ local function optimizeRack(rackid, levelo ,min, max, usedmax)
                 local node = candidate_node[1]
                 local capa_node = tonumber(redis.call("ZSCORE", "temp:nodes", node))
                 if capa_node > shard_size then
-                    local node_id = string.sub(redis.call("HGET", item, "node-id"), 6)
+                    local node_id = string.sub(node, 6)
                     redis.call("rpush", "temp:optimise:task","rladmin migrate shard " .. shard_id .. " preserve_roles target_node " .. node_id)
                     redis.call("ZINCRBY", "temp:nodes", -shard_size, node_source)
                     redis.call("ZINCRBY", "temp:nodes", shard_size, node)
