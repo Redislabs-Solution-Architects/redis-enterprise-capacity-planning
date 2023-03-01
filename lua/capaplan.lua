@@ -19,7 +19,6 @@ Clean()
 
 ------------ACTIONS--------------------
 ---- Calculate Cluster Capacity 
---TODO: Help
 ----- Variable(s)
 local size = tonumber(ARGV[2])
 
@@ -78,7 +77,6 @@ local function capacity(size)
 end
 
 ----Shard Correspondance Function
---TODO Help 
 local corrHelp=[[Create correspondance between master and replica shards and populate Sets and Sorted sets permitting to make Capacity calculation & Optimisations.
 As well as determining the consumption of shards for the cluster by type 1G , 5G , 25G
 Arguments:
@@ -293,7 +291,6 @@ local function canCreate(memory_size,nb_of_shards,replication)
 end
 
 --- Can Upscale Variables & Functions
-
 local upscaleusage = [[Permits to determine if in the actual state of the Cluster whether you will be able or not to upscale a given database. To a certain amount of memory and shards.
 Arguments:
 
@@ -315,159 +312,168 @@ local internal = (ARGV[7] == "true")
 
 ----- Function
 local function canUpscale(db,memory_size,nb_of_shards,replication,showPlan,internal)
-    local db_id = string.sub(db,4)
-    local shard_size = 0
-    local nb_of_shards_t = 0
-    local isRackAware = (redis.call("GET", "isRackAware") == "true")
-    local direct = true
-    local indirect = true
-    --Re-initialise temp data
-    redis.call("UNLINK", "temp:need:nodes")
-    redis.call("UNLINK", "temp:need:racks")
+    local exist = (tonumber(redis.call("zrank", "db", db)) ~= nil)
+    if exist then
+        local db_id = string.sub(db,4)
+        local shard_size = 0
+        local nb_of_shards_t = 0
+        local isRackAware = (redis.call("GET", "isRackAware") == "true")
+        local direct = true
+        local indirect = true
+        --Re-initialise temp data
+        redis.call("UNLINK", "temp:need:nodes")
+        redis.call("UNLINK", "temp:need:racks")
 
-    -- Gather the necessary information of the database
-    local db_memory = tonumber(redis.call("HGET", db , "memory_limit"))
-    local db_nb_shards = tonumber(redis.call("HGET", db , "number-shards"))
-    local db_shard_size = math.floor(db_memory/db_nb_shards)
+        -- Gather the necessary information of the database
+        local db_memory = tonumber(redis.call("HGET", db , "memory_limit"))
+        local db_nb_shards = tonumber(redis.call("HGET", db , "number-shards"))
+        local db_shard_size = math.floor(db_memory/db_nb_shards)
 
-    if replication then
-        nb_of_shards_t = nb_of_shards * 2
-        shard_size = math.floor(memory_size / nb_of_shards_t)
-        nb_of_shards = nb_of_shards_t
-        db_shard_size = db_shard_size/2
-        db_nb_shards = db_nb_shards * 2
-    else
-        shard_size = math.floor(memory_size / nb_of_shards)
-    end
-    local capacityClusterfield = "capacity:cluster:" .. shard_size .. "G"
-    local clusterRam = tonumber(redis.call("GET", "capacity:cluster:ram"))
-    -- Get Capacity Summary for this shard size
-    local capacityC = tonumber(redis.call("GET", capacityClusterfield))
-    local clusterTheoricalCapacity = math.floor(clusterRam / shard_size) - capacityC
-    local nb_nodes_with_capacity = tonumber(redis.call("GET","nodes:nb:ok:" .. shard_size .. "G" ))
-
-    -- What we need for this db
-
-    local db_memory_need = memory_size - db_memory
-    local shard_memory_need = shard_size - db_shard_size
-    local nb_shards_need = nb_of_shards - db_nb_shards
-    local shardSet = redis.call("SMEMBERS", db ..":shards")
-
-    --case 1 / No additional shard just more memory
-    if nb_shards_need == 0 then
-
-        for i,item in ipairs(shardSet) do
-            local node = redis.call("HGET", item, "node-id")
-            local node_memory = tonumber(redis.call("HGET", node, "available_memory"))
-            if node_memory < shard_memory_need then
-                local miss = shard_memory_need - node_memory
-                message = message .. "\n The node " .. node .. " is missing " .. miss .. "G. You may want to optimise this node."
-                direct = false
-                if internal then
-                    redis.call("ZADD", "db:canUpscale", 0 , db)
-                end
-            end
+        if replication then
+            nb_of_shards_t = nb_of_shards * 2
+            shard_size = math.floor(memory_size / nb_of_shards_t)
+            nb_of_shards = nb_of_shards_t
+            db_shard_size = db_shard_size/2
+            db_nb_shards = db_nb_shards * 2
+        else
+            shard_size = math.floor(memory_size / nb_of_shards)
         end
-        if direct then
-            if internal then
-                redis.call("ZADD", "db:canUpscale", 2,db )
-            end
-            return "OK"
-        else return message
-        end
+        local capacityClusterfield = "capacity:cluster:" .. shard_size .. "G"
+        local clusterRam = tonumber(redis.call("GET", "capacity:cluster:ram"))
+        -- Get Capacity Summary for this shard size
+        local capacityC = tonumber(redis.call("GET", capacityClusterfield))
+        local clusterTheoricalCapacity = math.floor(clusterRam / shard_size) - capacityC
+        local nb_nodes_with_capacity = tonumber(redis.call("GET","nodes:nb:ok:" .. shard_size .. "G" ))
 
-    end
+        -- What we need for this db
 
-    --case 2 other
+        local db_memory_need = memory_size - db_memory
+        local shard_memory_need = shard_size - db_shard_size
+        local nb_shards_need = nb_of_shards - db_nb_shards
+        local shardSet = redis.call("SMEMBERS", db ..":shards")
 
-    --- First can we upscale directly ?
-    if nb_shards_need > 0 then
-        for i, item in ipairs(shardSet) do
-            local node = redis.call("HGET", item, "node-id")
-            local rack = redis.call("HGET", item, "rack-id")
-            redis.call("ZINCRBY", "temp:need:nodes", 1, node)
-            redis.call("ZINCRBY", "temp:need:racks", 1, rack)
-        end
+        --case 1 / No additional shard just more memory
+        if nb_shards_need == 0 then
 
-        for i, item in ipairs(shardSet) do
-            local node = redis.call("HGET", item, "node-id")
-            local node_capacity = tonumber(redis.call("HGET", node, "capacity" .. shard_size .. "G"))
-            local node_need = tonumber(redis.call("ZSCORE", "temp:need:nodes", node))
-            if node_capacity < node_need then
-                local miss = (node_need * shard_size) - tonumber(redis.call("HGET", node, "available_memory"))
-                message = message .."\n The node " ..node .." is missing " .. miss .. "G. You may want to optimise this node. Or use the utility to Optimise the DB"
-                direct = false
-            end
-            if direct then
-                if internal then
-                    redis.call("ZADD", "db:canUpscale", 2 , db)
-                end
-                return "OK"
-            end
-        end
-
-        if isRackAware then
-            local racksSet = redis.call("ZREVRANGE", "racks:" .. shard_size .. "G", 0, -1)
-            local first = redis.call("ZREVRANGE", "racks:" .. shard_size .. "G", 0, 0)
-            local second = redis.call("ZREVRANGE", "racks:" .. shard_size .. "G", 1, 1)
-            local third = redis.call("ZREVRANGE", "racks:" .. shard_size .. "G", 2, 2)
-            local fscore = tonumber(redis.call("ZSCORE", "racks:" .. shard_size .. "G", first[1]))
-            local sscore = tonumber(redis.call("ZSCORE", "racks:" .. shard_size .. "G", second[1]))
-            local tscore = tonumber(redis.call("ZSCORE", "racks:" .. shard_size .. "G", third[1]))
-            local nb_rack_ok = tonumber(redis.call("GET", "racks:nb:ok:" .. shard_size .. "G"))
-            if (nb_rack_ok == 1) then
-                message = message ..string.format("\n Only one rack (" ..first[1] ..") has the capacity: there are not enough resources to meet Rack-Zone awareness constraints.\n You may want to optimise the shards placement.")
-                indirect = false
-                if internal then
-                    redis.call("ZADD", "db:canUpscale", 0 , db)
-                end
-            end
-            if (nb_rack_ok == 2) then
-                if (fscore >= math.floor(nb_shards_need / 2) and sscore >= math.floor(nb_shards_need / 2)) then
-                    message = message .. string.format("\n Rack-Zone awareness constraints are met: OK")
-                    if internal then
-                        redis.call("ZADD", "db:canUpscale", 1, db )
-                    end
-                else
-                    message = message ..
-                        string.format("\n Rack-Zone awareness constraints are not met! Racks " ..second[1] .. " and " .. third[1] .. " do not have enough capacity.")
-                    indirect = false
+            for i,item in ipairs(shardSet) do
+                local node = redis.call("HGET", item, "node-id")
+                local node_memory = tonumber(redis.call("HGET", node, "available_memory"))
+                if node_memory < shard_memory_need then
+                    local miss = shard_memory_need - node_memory
+                    message = message .. "\n The node " .. node .. " is missing " .. miss .. "G. You may want to optimise this node."
+                    direct = false
                     if internal then
                         redis.call("ZADD", "db:canUpscale", 0 , db)
                     end
                 end
             end
-            if (nb_rack_ok == 3) then
-                if (fscore >= math.floor(nb_shards_need / 2) and sscore + tscore >= math.floor(nb_shards_need / 2)) then
-                    message = message .. string.format(" \n Rack-Zone awareness constraints are met: OK")
-                    if internal then
-                        redis.call("ZADD", "db:canUpscale", 1, db )
-                    end
-                else
-                    message = message ..string.format("\n Rack-Zone awareness constraints are not met! Racks " ..second[1] .. " and " .. third[1] .. " do not have enough capacity.")
+            if direct then
+                if internal then
+                    redis.call("ZADD", "db:canUpscale", 2,db )
+                end
+                message = message .. "OK\n"
+                return message
+            else 
+                return message
+            end
+
+        end
+
+        --case 2 other
+
+        --- First can we upscale directly ?
+        if nb_shards_need > 0 then
+            for i, item in ipairs(shardSet) do
+                local node = redis.call("HGET", item, "node-id")
+                local rack = redis.call("HGET", item, "rack-id")
+                redis.call("ZINCRBY", "temp:need:nodes", 1, node)
+                redis.call("ZINCRBY", "temp:need:racks", 1, rack)
+            end
+
+            for i, item in ipairs(shardSet) do
+                local node = redis.call("HGET", item, "node-id")
+                local node_capacity = tonumber(redis.call("HGET", node, "capacity" .. shard_size .. "G"))
+                local node_need = tonumber(redis.call("ZSCORE", "temp:need:nodes", node))
+                if node_capacity < node_need then
+                    local miss = (node_need * shard_size) - tonumber(redis.call("HGET", node, "available_memory"))
+                    message = message .."\n The node " ..node .." is missing " .. miss .. "G. You may want to optimise this node. Or use the utility to Optimise the DB"
+                    direct = false
+                end
+                
+            end
+            if direct then
+                if internal then
+                    redis.call("ZADD", "db:canUpscale", 2 , db)
+                end
+                message = message .. "OK\n"
+                return message
+            end
+
+            if isRackAware then
+                local racksSet = redis.call("ZREVRANGE", "racks:" .. shard_size .. "G", 0, -1)
+                local first = redis.call("ZREVRANGE", "racks:" .. shard_size .. "G", 0, 0)
+                local second = redis.call("ZREVRANGE", "racks:" .. shard_size .. "G", 1, 1)
+                local third = redis.call("ZREVRANGE", "racks:" .. shard_size .. "G", 2, 2)
+                local fscore = tonumber(redis.call("ZSCORE", "racks:" .. shard_size .. "G", first[1]))
+                local sscore = tonumber(redis.call("ZSCORE", "racks:" .. shard_size .. "G", second[1]))
+                local tscore = tonumber(redis.call("ZSCORE", "racks:" .. shard_size .. "G", third[1]))
+                local nb_rack_ok = tonumber(redis.call("GET", "racks:nb:ok:" .. shard_size .. "G"))
+                if (nb_rack_ok == 1) then
+                    message = message ..string.format("\n Only one rack (" ..first[1] ..") has the capacity: there are not enough resources to meet Rack-Zone awareness constraints.\n You may want to optimise the shards placement.")
                     indirect = false
                     if internal then
-                        redis.call("ZADD", "db:canUpscale", 0, db )
+                        redis.call("ZADD", "db:canUpscale", 0 , db)
                     end
+                end
+                if (nb_rack_ok == 2) then
+                    if (fscore >= math.floor(nb_shards_need / 2) and sscore >= math.floor(nb_shards_need / 2)) then
+                        message = message .. string.format("\n Rack-Zone awareness constraints are met: OK")
+                        if internal then
+                            redis.call("ZADD", "db:canUpscale", 1, db )
+                        end
+                    else
+                        message = message ..
+                            string.format("\n Rack-Zone awareness constraints are not met! Racks " ..second[1] .. " and " .. third[1] .. " do not have enough capacity.")
+                        indirect = false
+                        if internal then
+                            redis.call("ZADD", "db:canUpscale", 0 , db)
+                        end
+                    end
+                end
+                if (nb_rack_ok == 3) then
+                    if (fscore >= math.floor(nb_shards_need / 2) and sscore + tscore >= math.floor(nb_shards_need / 2)) then
+                        message = message .. string.format(" \n Rack-Zone awareness constraints are met: OK")
+                        if internal then
+                            redis.call("ZADD", "db:canUpscale", 1, db )
+                        end
+                    else
+                        message = message ..string.format("\n Rack-Zone awareness constraints are not met! Racks " ..second[1] .. " and " .. third[1] .. " do not have enough capacity.")
+                        indirect = false
+                        if internal then
+                            redis.call("ZADD", "db:canUpscale", 0, db )
+                        end
+                    end
+                end
+            end
+
+            if showPlan then
+                -- If not direct can we upscale indirectly? If yes propose the action plan
+                local canCreate = (redis.call("GET", "cancreate:" .. memory_size .. "G") == "true")
+                if not direct and (canCreate or indirect) then
+                    local username = "admin@admin.com"
+                    local cluster_url = "https://cluster.dev-pierre-lab.demo.redislabs.com"
+                    local memorymb = memory_size * 1024 * 1024 * 1024
+                    local stepone = "curl -k -L -u \"" ..username ..":password\" -H \"Content-type:application/json\" -X PUT " ..cluster_url ..":9443/v1/bdbs/" ..db_id .." -d '{\"sharding\": true,\"shards_count\": " ..math.floor(nb_of_shards / 2) ..", \"shard_key_regex\":[{\"regex\":\".*\\\\{(?<tag>.*)\\\\}.*\"}, {\"regex\":\"(?<tag>.*)\"}]}'"
+                    local steptwo = "curl -k -L -u \"" ..username ..":password\" -H \"Content-type:application/json\" -X PUT " ..cluster_url .. ":9443/v1/bdbs/" .. db_id .. " -d '{\"memory_size\": " .. memorymb .. " }'"
+                    message ="It is actually not possible to upscale the database in only one step. \n The plan to upscale the database in two steps is the following: \n" ..stepone .. "\n" .. steptwo
                 end
             end
         end
 
-        if showPlan then
-            -- If not direct can we upscale indirectly? If yes propose the action plan
-            local canCreate = (redis.call("GET", "cancreate:" .. memory_size .. "G") == "true")
-            if not direct and (canCreate or indirect) then
-                local username = "admin@admin.com"
-                local cluster_url = "https://cluster.dev-pierre-lab.demo.redislabs.com"
-                local memorymb = memory_size * 1024 * 1024 * 1024
-                local stepone = "curl -k -L -u \"" ..username ..":password\" -H \"Content-type:application/json\" -X PUT " ..cluster_url ..":9443/v1/bdbs/" ..db_id .." -d '{\"sharding\": true,\"shards_count\": " ..math.floor(nb_of_shards / 2) ..", \"shard_key_regex\":[{\"regex\":\".*\\\\{(?<tag>.*)\\\\}.*\"}, {\"regex\":\"(?<tag>.*)\"}]}'"
-                local steptwo = "curl -k -L -u \"" ..username ..":password\" -H \"Content-type:application/json\" -X PUT " ..cluster_url .. ":9443/v1/bdbs/" .. db_id .. " -d '{\"memory_size\": " .. memorymb .. " }'"
-                message ="It is actually not possible to upscale the database in only one step. \n The plan to upscale the database in two steps is the following: \n" ..stepone .. "\n" .. steptwo
-            end
-        end
+        return message
+    else
+        message = message .. "Database with id " .. db .." does not exist."
     end
-
-    return message
 end
 ----Optimizations Variables & Functions
 -- Variables for Optimisations actions
