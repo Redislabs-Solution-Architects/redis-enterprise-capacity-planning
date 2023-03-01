@@ -72,7 +72,7 @@ local function capacity(size)
     redis.call("SET", "nodes:nb:ok:" .. size .. "G", nb_nodes_capacity)
     local nb_rack_capacity = tonumber(redis.call("ZCOUNT", rackcapacity, 1, "+inf"))
     redis.call("SET", "racks:nb:ok:" .. size .. "G", nb_rack_capacity)
-    message = redis.call("GET", capacityClusterkey)
+    message = message .. "\n" .. redis.call("GET", capacityClusterkey)
     message = message .. "\n"
     return message
 end
@@ -178,7 +178,7 @@ local function correspondanceShards()
             end
         end
     end
-    message = "OK"
+    message = message .. "OK181"
     return message
 end
 
@@ -267,7 +267,7 @@ local function canCreate(memory_size,nb_of_shards,replication)
         local tscore = tonumber(redis.call("ZSCORE", "racks:" .. shard_size .. "G", third[1]))
         local nb_rack_ok = tonumber(redis.call("GET", "racks:nb:ok:" .. shard_size .. "G"))
         if (nb_rack_ok == 1) then
-            message = message .. string.format("\nOnly one rack (" .. first[1] .. ") has the capacity: there are not enough resources to meet Rack-Zone awareness constraints.\n You may want to optimise the shards placement.")
+            message = message .. string.format("\nOnly one rack (" .. first[1] .. ") has the capacity: there are not enough resources to meet Rack-Zone awareness constraints.\nYou may want to optimise the shards placement.")
             status = false
         end
         if (nb_rack_ok == 2) then
@@ -322,6 +322,7 @@ local internal = (ARGV[7] == "true")
 ----- Function
 local function canUpscale(db,memory_size,nb_of_shards,replication,showPlan,internal)
     local exist = (tonumber(redis.call("zrank", "db", db)) ~= nil)
+    message = message .. "Can Database " .. db .. " upscale to " .. memory_size .. "G ? "
     if exist then
         local db_id = string.sub(db,4)
         local shard_size = 0
@@ -434,7 +435,7 @@ local function canUpscale(db,memory_size,nb_of_shards,replication,showPlan,inter
                 local tscore = tonumber(redis.call("ZSCORE", "racks:" .. shard_size .. "G", third[1]))
                 local nb_rack_ok = tonumber(redis.call("GET", "racks:nb:ok:" .. shard_size .. "G"))
                 if (nb_rack_ok == 1) then
-                    message = message ..string.format("\nOnly one rack (" ..first[1] ..") has the capacity: there are not enough resources to meet Rack-Zone awareness constraints.\n You may want to optimise the shards placement.")
+                    message = message ..string.format("\nOnly one rack (" ..first[1] ..") has the capacity: there are not enough resources to meet Rack-Zone awareness constraints.\nYou may want to optimise the shards placement.")
                     indirect = false
                     if internal then
                         redis.call("ZADD", "db:canUpscale", 0 , db)
@@ -442,7 +443,7 @@ local function canUpscale(db,memory_size,nb_of_shards,replication,showPlan,inter
                 end
                 if (nb_rack_ok == 2) then
                     if (fscore >= math.floor(nb_shards_need / 2) and sscore >= math.floor(nb_shards_need / 2)) then
-                        message = message .. string.format("\nRack-Zone awareness constraints are met: OK")
+                        message = message .. string.format("\n Rack-Zone awareness constraints are met: OK")
                         if internal then
                             redis.call("ZADD", "db:canUpscale", 1, db )
                         end
@@ -774,7 +775,7 @@ local function capaUpDB()
             end
         end
     end
-    message = message .. "OK"
+    message = "OK"
     return message
 end
 
