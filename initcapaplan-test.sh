@@ -162,8 +162,12 @@ echo "$shardsinfo" | awk -F '[/ ]+' '/redis/  {print "sadd shards "$3}' | $redis
 echo "$shardsinfo" | awk -F '[/ ]+' '/redis/  {print "sadd "$1":shards "$3}' | $redis 
 ##Fetch databases information and store it to Redis database
 
-echo "$databasesinfo" | awk -F '[/ ]+' '/redis/  {print "hset "$1" db-id "$1" db-name "$2" number-shards "$5" shard_placement "$6" replication "$7}' | tr -d \*GB | $redis
+if [[ $databasesinfo == *"MODULE"* ]]; then
 
+echo "$databasesinfo" | sed -e "s/ yes//g" | awk -F '[/ ]+' '/redis/  {print "hset "$1" db-id "$1" db-name "$2" number-shards "$5" shard_placement "$6" replication "$7}' | tr -d \*GB | $redis
+else
+echo "$databasesinfo" | awk -F '[/ ]+' '/redis/  {print "hset "$1" db-id "$1" db-name "$2" number-shards "$5" shard_placement "$6" replication "$7}' | tr -d \*GB | $redis
+fi
 #response=$(curl -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:application/json" https://localhost:9443/v1/bdbs?fields=uid,memory_size)
 response="[{\"uid\":1, \"memory_size\": 2147483648},{\"uid\":2, \"memory_size\": 53687091200},{\"uid\":4, \"memory_size\": 10737418240},{\"uid\":5, \"memory_size\": 10737418240}]"
 redis-cli -h $redis_hostname -p $redis_port  unlink db
