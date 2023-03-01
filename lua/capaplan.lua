@@ -322,7 +322,7 @@ local internal = (ARGV[7] == "true")
 ----- Function
 local function canUpscale(db,memory_size,nb_of_shards,replication,showPlan,internal)
     local exist = (tonumber(redis.call("zrank", "db", db)) ~= nil)
-    message = message .. "Can Database " .. db .. " upscale to " .. memory_size .. "G ? "
+    --message = message .. "Can Database " .. db .. " upscale to " .. memory_size .. "G ? "
     if exist then
         local db_id = string.sub(db,4)
         local shard_size = 0
@@ -959,7 +959,7 @@ if (string.upper(action) == "OPTIMIZE" or string.upper(action) == "O") then
                 shard_size_max = ARGV[4]
                 shard_used_max = ARGV[5]
                 optimizeCluster(shard_size_min,shard_size_max,shard_used_max)
-                message = message .. ShowSteps()
+                --No Need: message = message .. ShowSteps()
                 
             end
         else 
