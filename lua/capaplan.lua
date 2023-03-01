@@ -113,8 +113,8 @@ local function correspondanceShards()
             local rack_node = redis.call("HGET", shard_node, "rack-id")
             local used_s = redis.call("HGET", shard, "used_memory")
             local used = 0
-            if string.find(used_s, "G") then
-                used = tonumber(string.sub(used_s, 1, -2))
+            if string.find(used_s, "GB") then
+                used = tonumber(string.sub(used_s, 1, -3))
             else
                 used = tonumber(string.sub(used_s, 1, -3)) / 1000
             end
@@ -260,7 +260,7 @@ local function canCreate(memory_size,nb_of_shards,replication)
         local tscore = tonumber(redis.call("ZSCORE", "racks:" .. shard_size .. "G", third[1]))
         local nb_rack_ok = tonumber(redis.call("GET", "racks:nb:ok:" .. shard_size .. "G"))
         if (nb_rack_ok == 1) then
-            message = message .. string.format("\n Only one rack (" .. first[1] .. ") has the capacity: there are not enough resources to meet Rack-Zone awareness constraints.\n You may want to oppitmise the shards placement.")
+            message = message .. string.format("\n Only one rack (" .. first[1] .. ") has the capacity: there are not enough resources to meet Rack-Zone awareness constraints.\n You may want to optimise the shards placement.")
             status = false
         end
         if (nb_rack_ok == 2) then

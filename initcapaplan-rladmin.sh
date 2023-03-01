@@ -139,6 +139,7 @@ echo "$shardsinfo" | awk -F '[/ ]+' '/redis/  {print "sadd shards "$3}' | $redis
 echo "$shardsinfo" | awk -F '[/ ]+' '/redis/  {print "sadd "$1":shards "$3}' | $redis
 
 ##Fetch databases information and store it to Redis database
+##TODO problem with modules
 
 rladmin status databases extra all | awk -F '[/ ]+' '/redis/  {print "hset "$1" db-id "$1" db-name "$2" number-shards "$5" shard_placement "$6" replication "$7}' | tr -d \*GB | $redis
 
