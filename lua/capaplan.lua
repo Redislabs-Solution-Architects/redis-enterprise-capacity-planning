@@ -618,13 +618,13 @@ local function optimizeNode(nodeid, levelo ,min, max, usedmax, exclude)
             end
         end
         if saved > 0 then
-        message = message .. "\n Plan for node ".. nodeid .. " is done. It would permit to make " .. saved .."G available.\n"
+        message = message .. "\nPlan for node ".. nodeid .. " is done. It would permit to make " .. saved .."G available.\n"
         message = message .. ShowSteps()
         else 
-            message = message .. "\n No Plan for node ".. nodeid .. " done. There is no Shard meeting conditions."
+            message = message .. "\nNo Plan for node ".. nodeid .. " done. There is no Shard meeting conditions."
         end
     else
-        message = message .. "\n No Plan for node ".. nodeid .. " done. There is no Shard meeting conditions."
+        message = message .. "\nNo Plan for node ".. nodeid .. " done. There is no Shard meeting conditions."
     end
     return message
 end
@@ -670,13 +670,13 @@ local function optimizeRack(rackid, levelo ,min, max, usedmax)
             end
         end
         if saved > 0 then
-            message = message .."\n Plan for Rack " .. rackid .. " done. It would permit to make " .. saved .. "G available. \n"
+            message = message .."\nPlan for Rack " .. rackid .. " done. It would permit to make " .. saved .. "G available. \n"
             message = message .. ShowSteps()
         else
-            message = message .. "\n No Plan for Rack " .. rackid .. " done. There is no Shard meeting conditions."
+            message = message .. "\nNo Plan for Rack " .. rackid .. " done. There is no Shard meeting conditions."
         end
     else
-        message = message .. "\n No Plan for Rack ".. rackid .. " done. There is no Shard meeting conditions."
+        message = message .. "\nNo Plan for Rack ".. rackid .. " done. There is no Shard meeting conditions."
     end
     
     return message
@@ -719,7 +719,7 @@ local function densifyNode(nodeid, min , max, usedmax)
         message = message .. "We can add " .. added .."G to the node " .. nodeid ..". " .. memory_target_end .."G would be remaining after change. \n" 
         message = message .. ShowSteps()
         else
-            message = message .. "\n No Plan actually for the Cluster, " .. nodeid .. " can not be densified. There is no Shard meeting conditions."
+            message = message .. "\nNo Plan actually for the Cluster, " .. nodeid .. " can not be densified. There is no Shard meeting conditions."
     end
     
 
