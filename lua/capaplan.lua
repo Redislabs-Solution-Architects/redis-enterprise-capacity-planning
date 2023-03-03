@@ -725,12 +725,17 @@ local function densifyNode(nodeid, min , max, usedmax)
 
 end
 
-local function optimizeCluster(min , max,usedmax)
+local function optimizeCluster(min , max,usedmax,rackid)
     -- First let's define the target node
     -- It is a Node which cannot accept anymore 25G shards and is far to be able.
+    -- Optional rackid if we want to densify a node inside a specific AZ/RACK
     --redis.call("UNLINK","temp:optimise:task")
     --redis.call("UNLINK","temp:optimise:fail")
-    redis.call("ZINTERSTORE", "temp:candidates:nodes", 2, "nodes:host", "nodes:candidates:25G")
+    if(rackid == "" or rackid == nil ) then
+        redis.call("ZINTERSTORE", "temp:candidates:nodes", 2, "nodes:host", "nodes:candidates:25G")
+    else
+        redis.call("ZINTERSTORE", "temp:candidates:nodes", 2, "nodes:host","racks:" .. rackid .. ":nodes:candidates:25G")
+    end
     redis.call("ZDIFFSTORE", "temp:candidates:nodes",2,"temp:candidates:nodes","nodes:ok:25G")
     local candidate_node = redis.call("ZRANGE", "temp:candidates:nodes", 0, 0 )
     densifyNode(candidate_node[1],min,max,usedmax)
@@ -819,7 +824,7 @@ local function OshowHelp()
     print("          When you choose Db it means you try to make space on the nodes hosting its shards in order to scale.")
     print("          When you choose Node it means you want to free some space on a given node.")
     print("          When you choose Rack it means you want to free some space on a given rack.")
-    print("          When you choose Cluster it means you want to gather 1G and 5G together on nodes which can not handle any further 25G shards.")
+    print("          When you choose Cluster it means you want to gather 1G and 5G together on nodes which can not handle any further 25G shards. You can specify also a rack/AZ in which you would like the operation to happen.")
     print("   id - Is the identifier of the node or the rack.")
     print("   shard_size_min - To filter the minimum capacity size (GB) of the shards which can be moved (1, 5 or 25).")
     print("   shard_size_max - To filter the maximum capacity size (GB) of the shards which can be moved (1, 5 or 25).")
@@ -958,9 +963,17 @@ if (string.upper(action) == "OPTIMIZE" or string.upper(action) == "O") then
                 shard_size_min = ARGV[3]
                 shard_size_max = ARGV[4]
                 shard_used_max = ARGV[5]
-                optimizeCluster(shard_size_min,shard_size_max,shard_used_max)
+                optimizeCluster(shard_size_min,shard_size_max,shard_used_max,nil)
                 --No Need: message = message .. ShowSteps()
                 
+            end
+        elseif #ARGV == 6 then
+            if level == 1 then
+                shard_size_min = ARGV[3]
+                shard_size_max = ARGV[4]
+                shard_used_max = ARGV[5]
+               local orackid = ARGV[6]
+                optimizeCluster(shard_size_min,shard_size_max,shard_used_max,orackid)
             end
         else 
             message = "Wrong number of Arguments for the ".. action .. " function: \n"
