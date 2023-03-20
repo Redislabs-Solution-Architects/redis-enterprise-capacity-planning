@@ -70,7 +70,7 @@ As well I made the choice for now to offer several ways to populate the database
 ## Pre-requisites
 
 - For target Redis database : Redis>=**6.2**
-- For the script to execute: **jq** and **curl**
+- To execute the script: **[jq](https://stedolan.github.io/jq/)** and **[curl](https://curl.se/)**
 ## Initialization
 
 - TODO: add option to create database on Redis Enterprise Cluster
