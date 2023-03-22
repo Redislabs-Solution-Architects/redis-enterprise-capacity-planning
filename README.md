@@ -92,7 +92,9 @@ The script needs to be executed from a node of the Redis Enterprise cluster
 > -h     Print this Help.\
 > -a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost\
 > -r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost\
-> -p     Port of the Redis Database which will host the generated data from this script. Default=6379
+> -p     Port of the Redis Database which will host the generated data from this script. Default=6379\
+> -u     Username for the Redis Enterprise Cluster API. Default=admin@admin.com\
+> -s     Password for the Redis Enterprise Cluster API. Default=admin
 
 ### with REST API
 
@@ -106,7 +108,9 @@ The script needs to be executed from a node of the Redis Enterprise cluster
 > -h   Print this Help.\
 > -a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost\
 > -r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost\
-> -p     Port of the Redis Database which will host the generated data from this script. Default=6379
+> -p     Port of the Redis Database which will host the generated data from this script. Default=6379\
+> -u     Username for the Redis Enterprise Cluster API. Default=admin@admin.com\
+> -s     Password for the Redis Enterprise Cluster API. Default=admin
 
 ### for local testing
 
@@ -397,4 +401,4 @@ Example:
 
 ![grafanadahboard](images/capaplan.png)
 
-Json Export for the dashboard into **grafana** directory.
+Json Export for the dashboard into **grafana** directory

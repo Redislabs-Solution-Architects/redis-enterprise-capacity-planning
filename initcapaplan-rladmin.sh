@@ -15,10 +15,12 @@ Help()
    echo "-a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost"
    echo "-r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost"
    echo "-p     Port of the Redis Database which will host the generated data from this script. Default=6379"
+   echo "-u     Username for the Redis Enterprise Cluster API. Default=admin@admin.com"
+   echo "-s     Password for the Redis Enterprise Cluster API. Default=admin"
    echo
 }
 
-while getopts a:r:p:h flag
+while getopts a:r:p:u:s:h flag
 do
     case "${flag}" in
         h) Help
@@ -29,6 +31,10 @@ do
           redis_hostname=${OPTARG};;
         p) # Port of the redis database to host data
           redis_port=${OPTARG};;
+        u) # username for API
+          api_username=${OPTARG};;
+        s) # Password for API
+          api_password=${OPTARG};;
         \?) # Invalid option
          echo "Error: Invalid option"
          exit;;
@@ -56,6 +62,18 @@ if [ -z $redis_port ]
   then
     echo "No arguments supplied for Redis Port. Using default. "
     redis_port=6379
+fi
+
+if [ -z $api_username ]
+  then
+    echo "No arguments supplied for API Username. Using default. "
+    api_username="admin@admin.com"
+fi
+
+if [ -z $api_password ]
+  then
+    echo "No arguments supplied for API Password. Using default. "
+    api_password="admin"
 fi
 
 redis="redis-cli -h $redis_hostname -p $redis_port"
@@ -147,7 +165,7 @@ else
 echo "$databasesinfo" | awk -F '[/ ]+' '/redis/  {print "hset "$1" db-id "$1" db-name "$2" number-shards "$5" shard_placement "$6" replication "$7}' | tr -d \*GB | $redis
 fi
 
-response=$(curl -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/bdbs?fields=uid,memory_size)
+response=$(curl -k -L -X GET -u "${api_username}:${api_password}" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/bdbs?fields=uid,memory_size)
 
 redis-cli -h $redis_hostname -p $redis_port unlink db
 

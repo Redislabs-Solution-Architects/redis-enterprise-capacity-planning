@@ -13,10 +13,12 @@ Help()
    echo "-a     Hostname of the Redis Enterprise Cluster which link to its REST API. Default=locahost"
    echo "-r     Hostname of the Redis Database which will host the generated data from this script. Default=locahost"
    echo "-p     Port of the Redis Database which will host the generated data from this script. Default=6379"
+   echo "-u     Username for the Redis Enterprise Cluster API. Default=admin@admin.com"
+   echo "-s     Password for the Redis Enterprise Cluster API. Default=admin"
    echo
 }
 
-while getopts a:r:p:h flag
+while getopts a:r:p:u:s:h flag
 do
     case "${flag}" in
         h) Help
@@ -27,6 +29,10 @@ do
           redis_hostname=${OPTARG};;
         p) # Port of the redis database to host data
           redis_port=${OPTARG};;
+        u) # username for API
+          api_username=${OPTARG};;
+        s) # Password for API
+          api_password=${OPTARG};;
         \?) # Invalid option
          echo "Error: Invalid option"
          Help
@@ -60,6 +66,17 @@ if [ -z $redis_port ]
     echo "No arguments supplied for Redis Port. Using default. "
     redis_port=6379
 fi
+if [ -z $api_username ]
+  then
+    echo "No arguments supplied for API Username. Using default. "
+    api_username="admin@admin.com"
+fi
+
+if [ -z $api_password ]
+  then
+    echo "No arguments supplied for API Password. Using default. "
+    api_password="admin"
+fi
 
 redis="redis-cli -h $redis_hostname -p $redis_port"
 
@@ -83,7 +100,7 @@ parse_bdbs_json_objects() {
   local memory_size_gb=$(awk "BEGIN {print int($memory_size/1024/1024/1024)}")
   echo $($redis hset $dbid db-id $dbid db-name $db_name number-shards $shards_count shard_placement $shards_placement replication $replication memory_limit $memory_size_gb)
   echo $($redis zadd db $memory_size_gb $dbid)
-  local bdbsstatsjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/bdbs/stats/last/$uid)
+  local bdbsstatsjson=$(curl -s -k -L -X GET -u "${api_username}:${api_password}" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/bdbs/stats/last/$uid)
   local responsetoget=$(echo "${bdbsstatsjson}" | jq -c '.')
     while read -r rows; do
       local memory_used=$(jq -r '.used_memory' <<< "${rows}")
@@ -105,7 +122,7 @@ parse_nodes_json_objects() {
   local total_available_memory=$(awk "BEGIN {printf \"%.2f\", 0.82*$total_memory/1024/1024/1024}")
   echo $($redis hset $node_id node-id $node_id rack-id $rack_id number-shards $shards_count total_available_memory $total_available_memory)
   echo $($redis sadd racks $rack_id)
-  local nodestatsjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/nodes/stats/last/$uid)
+  local nodestatsjson=$(curl -s -k -L -X GET -u "${api_username}:${api_password}" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/nodes/stats/last/$uid)
   local responsetoget=$(echo "${nodestatsjson}" | jq -c '.')
     while read -r rows; do
       local available_memory=$(jq -r '.provisional_memory' <<< "${rows}")
@@ -130,7 +147,7 @@ parse_shards_json_objects() {
   echo $($redis hset $shard_id shard-id $shard_id node-id $node_id db-id $db_id role $role slots $slots status $status)
   echo $($redis sadd shards $shard_id)
   echo $($redis sadd $zdbsh $shard_id)
-  local shardstatsjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/shards/stats/last/$uid)
+  local shardstatsjson=$(curl -s -k -L -X GET -u "${api_username}:${api_password}" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/shards/stats/last/$uid)
   local responsetoget=$(echo "${shardstatsjson}" | jq -c '.')
     while read -r rows; do
       local used_memory=$(jq -r '.used_memory' <<< "${rows}")
@@ -147,7 +164,7 @@ parse_shards_json_objects() {
 
 }
 #BDBS
-bdbsjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/bdbs)
+bdbsjson=$(curl -s -k -L -X GET -u "${api_username}:${api_password}" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/bdbs)
 
 
   responsebdbs=$(echo "${bdbsjson}" | jq -c '.')
@@ -157,7 +174,7 @@ bdbsjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:appl
 
 #NODES
 
-nodesjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/nodes)
+nodesjson=$(curl -s -k -L -X GET -u "${api_username}:${api_password}" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/nodes)
 
   responsenodes=$(echo "${nodesjson}" | jq -c '.')
   while read -r row; do
@@ -165,7 +182,7 @@ nodesjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:app
   done <<< "$(echo "${responsenodes}" | jq -c '.[]')"
 
 #SHARDS
-shardsjson=$(curl -s -k -L -X GET -u "admin@admin.com:admin" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/shards)
+shardsjson=$(curl -s -k -L -X GET -u "${api_username}:${api_password}" -H "Content-type:application/json" https://${redis_cluster_api_url}:9443/v1/shards)
 
   responseshards=$(echo "${shardsjson}" | jq -c '.')
   while read -r row; do
