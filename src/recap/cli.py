@@ -28,6 +28,10 @@ def emit(command, verdict, snapshot, *, reasons=(), plan=(), output_format="text
     provenance = {key: snapshot[key] for key in ("source", "collected_at", "provenance") if key in snapshot}
     result = {"schema_version": 1, "command": command, "verdict": verdict.value,
               "reasons": list(reasons), "partial": partial, "snapshot": provenance}
+    from recap.constraints import warnings
+    warning_list = warnings(snapshot) if 'nodes' in snapshot else []
+    if warning_list:
+        result['warnings'] = warning_list
     if plan:
         result["plan"] = list(plan)
     if details:
@@ -40,6 +44,8 @@ def emit(command, verdict, snapshot, *, reasons=(), plan=(), output_format="text
         print(("PARTIAL: " if partial else "") + verdict.value)
         for reason in reasons:
             print(reason)
+        for warning in warning_list:
+            print('warning: ' + warning)
         if details:
             from recap.units import format_gib
             for group, rows in details.items():

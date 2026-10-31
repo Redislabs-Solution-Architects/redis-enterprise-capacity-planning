@@ -7,8 +7,8 @@ Statuses: `planning`, `running`, `blocked`, `failed`, `done`, `audited`. A task 
 | T1 scaffold, units, CLI | REQ-01, SD-1 | done | f77b7b9 | Tests first: 38 failed before package implementation (missing recap package). Editable install succeeded. Focused suite: 38 passed in 1.86s. Whole suite: 38 passed in 1.42s. REQ-01 scenarios 2 and 3 covered; scenario 1 remains assigned to T7. |
 | T2 schema, validate, fixtures | REQ-03, SD-2 | done | 3c066af | Tests first: 25 failed, 6 passed before implementation. Focused suite: 37 passed in 3.35s. Whole suite: 75 passed in 4.21s. REQ-03 scenarios: 2/2. Checkpoint reached; awaiting owner review before T3. |
 | T3 collector | REQ-02 | done | f712edd | Red: 6 failed. Focused: 6 passed in 1.10s. Whole suite: 81 passed in 3.91s. REQ-02: 4/4 scenarios. |
-| T4 capacity model | REQ-04 | running | | Tests-first implementation in progress. |
-| T5 constraints | REQ-05 | planning | | |
+| T4 capacity model | REQ-04 | done | effde8c | Red: 8 failed. Focused: 8 passed in 0.11s. Whole suite: 89 passed in 4.13s. REQ-04: 3/3 scenarios. |
+| T5 constraints | REQ-05 | running | | Tests-first implementation in progress. |
 | T6 verifier | REQ-09 | planning | | |
 | T7 can-create | REQ-06 | planning | | |
 | T8 optimize | REQ-08 | planning | | checkpoint |
