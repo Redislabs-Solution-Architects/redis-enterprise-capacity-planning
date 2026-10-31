@@ -22,7 +22,7 @@ def exit_code(verdict: Verdict | str) -> int:
     return int(verdict in (Verdict.INFEASIBLE, Verdict.GOAL_NOT_MET, Verdict.NO_PLAN))
 
 
-def emit(command, verdict, snapshot, *, reasons=(), plan=(), output_format="text"):
+def emit(command, verdict, snapshot, *, reasons=(), plan=(), output_format="text", details=None):
     verdict = Verdict(verdict)
     partial = snapshot.get("provenance", {}).get("partial", False)
     provenance = {key: snapshot[key] for key in ("source", "collected_at", "provenance") if key in snapshot}
@@ -30,6 +30,8 @@ def emit(command, verdict, snapshot, *, reasons=(), plan=(), output_format="text
               "reasons": list(reasons), "partial": partial, "snapshot": provenance}
     if plan:
         result["plan"] = list(plan)
+    if details:
+        result.update(details)
     if exit_code(verdict) and not reasons:
         raise ValueError("negative verdicts require reasons")
     if output_format == "json":
@@ -38,6 +40,13 @@ def emit(command, verdict, snapshot, *, reasons=(), plan=(), output_format="text
         print(("PARTIAL: " if partial else "") + verdict.value)
         for reason in reasons:
             print(reason)
+        if details:
+            from recap.units import format_gib
+            for group, rows in details.items():
+                if isinstance(rows, list):
+                    for row in rows:
+                        if isinstance(row, dict):
+                            print(group + ': ' + ' '.join(f'{key}={format_gib(value) if key in ("free_ram", "shard_size") and isinstance(value,int) else value}' for key,value in row.items()))
     return exit_code(verdict)
 
 
@@ -154,6 +163,16 @@ def main(argv=None):
     if args.command == "collect":
         from recap.collect import run
         return run(args)
+    if args.command == "capacity":
+        from recap.snapshot import SnapshotError, load
+        from recap.model import capacity
+        try:
+            snapshot = load(args.snapshot, allow_partial=args.allow_partial)
+            details = capacity(snapshot, args.shard_size, args.ram_headroom)
+            return emit('capacity','ok',snapshot,output_format=args.format,details=details)
+        except (SnapshotError,ValueError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
     if args.command == "snapshot" and args.snapshot_action == "validate":
         from recap.snapshot import SnapshotError, load
         try:
