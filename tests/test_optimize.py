@@ -96,3 +96,14 @@ def test_req08_level2_failover_enables_master_move():
     result=plan(s,options)
     assert [x['action'] for x in result['plan']]==['failover','migrate']
     verify(s,result['plan'],result['goal'])
+
+
+def test_req08_level2_rejects_invalid_intermediate_failover():
+    """REQ-08/09: a later migration cannot conceal an invalid failover state."""
+    from recap.planner.optimize import plan
+    from recap.verifier import verify
+    s=json.loads((FIXTURES/'poc-5-nodes.json').read_text())
+    options=args('db');options.db='1';options.level=2;options.explain=True
+    result=plan(s,options)
+    verify(s,result['plan'],result.get('goal') if result['verdict']=='goal-met' else None)
+    assert not any(step['action']=='failover' for step in result['plan'])

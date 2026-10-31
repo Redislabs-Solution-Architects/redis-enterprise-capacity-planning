@@ -65,6 +65,10 @@ def plan(snapshot,args):
             partner=next((s for s in trial_base['shards'] if s['bdb_uid']==shard['bdb_uid'] and s['slots']==shard['slots'] and s['role']=='replica'),None)
             if partner is None: continue
             trial_shard['role'],partner['role']='replica','master'
+            errors=violations(trial_base)
+            if errors:
+                rejected.append(dict(shard_uid=shard_uid,action='failover',reasons=list(map(str,errors))))
+                continue
         size=sizes[shard['bdb_uid']]
         targets=[]
         for n in trial_base['nodes']:
