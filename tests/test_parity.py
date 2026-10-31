@@ -45,6 +45,29 @@ def test_p1_recorded_parity_and_inventory():
         if not equal:
             assert case.get('divergence_reason') in ALLOWED,case
             assert case.get('divergence_evidence'),case
+            if case['divergence_reason']=='F-8':
+                from copy import deepcopy
+                from recap.constraints import violations
+                proof=case.get('divergence_proof')
+                assert proof and proof['method']=='per-database-rack-counterfactual',case
+                baseline=violations(snapshot)
+                assert baseline and all(v.code=='rack-awareness' for v in baseline)
+                uids=sorted({v.bdb_uid for v in baseline})
+                assert proof['database_uids']==uids
+                counterfactual=deepcopy(snapshot)
+                for db in counterfactual['bdbs']:
+                    if db['uid'] in uids:db['rack_aware']=False
+                assert violations(counterfactual)==[]
+                if command=='can-create':
+                    assert create(counterfactual,**case['args'])['verdict']==case['verdict']
+                elif command=='can-upscale':
+                    assert upscale(counterfactual,**case['args'])['verdict'] in expected
+                elif command=='optimize':
+                    alternative=optimize(counterfactual,options)
+                    verify(counterfactual,alternative['plan'],alternative.get('goal') if alternative['verdict']=='goal-met' else None)
+                    assert [[s['shard_uid'],s['from_node'],s['to_node']] for s in alternative['plan']]==case['moves']
+                else:
+                    assert False,'F-8 cannot explain a capacity arithmetic mismatch'
         else:
             assert not case.get('divergence_reason'),case
     assert counts=={'capacity':3,'can-create':4,'can-upscale':4,'optimize':5}

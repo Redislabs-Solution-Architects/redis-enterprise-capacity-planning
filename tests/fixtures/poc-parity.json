@@ -54,7 +54,13 @@
       "poc_output": "Globally the Cluster has enough capacity: it can host 31 shards with 5G and the database you wish to create requires 2. \nRack-Zone awareness constraints are met: OK\nIf you can create this database you can upscale a existing one to this capacity.",
       "verdict": "feasible",
       "divergence_reason": "F-8",
-      "divergence_evidence": "REQ-05 checks every database placement; the recorded POC topology has DB 5 primary node 2 and replica node 5 on europe-west1-c. The POC aggregate/global rack checks do not reject that existing pair. rack-awareness: database 5 range 0-16383 shares a rack"
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
     },
     {
       "command": "can-create",
@@ -72,7 +78,13 @@
       "poc_output": "Globally the Cluster has enough capacity: it can host 3 shards with 25G and the database you wish to create requires 2.\nRack-Zone awareness constraints are met: OK\nIf you can create this database you can upscale a existing one to this capacity.",
       "verdict": "feasible",
       "divergence_reason": "F-8",
-      "divergence_evidence": "REQ-05 checks every database placement; the recorded POC topology has DB 5 primary node 2 and replica node 5 on europe-west1-c. The POC aggregate/global rack checks do not reject that existing pair. rack-awareness: database 5 range 0-16383 shares a rack"
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
     },
     {
       "command": "can-create",
@@ -119,7 +131,13 @@
       "poc_output": "OK",
       "poc_score": 2,
       "divergence_reason": "F-8",
-      "divergence_evidence": "REQ-05 checks every database placement; the recorded POC topology has DB 5 primary node 2 and replica node 5 on europe-west1-c. The POC aggregate/global rack checks do not reject that existing pair. rack-awareness: database 5 range 0-16383 shares a rack"
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
     },
     {
       "command": "can-upscale",
@@ -134,7 +152,13 @@
       "poc_output": "OK",
       "poc_score": 1,
       "divergence_reason": "F-8",
-      "divergence_evidence": "REQ-05 checks every database placement; the recorded POC topology has DB 5 primary node 2 and replica node 5 on europe-west1-c. The POC aggregate/global rack checks do not reject that existing pair. rack-awareness: database 5 range 0-16383 shares a rack"
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
     },
     {
       "command": "can-upscale",
@@ -149,7 +173,13 @@
       "poc_output": "OK",
       "poc_score": 2,
       "divergence_reason": "F-8",
-      "divergence_evidence": "REQ-05 checks every database placement; the recorded POC topology has DB 5 primary node 2 and replica node 5 on europe-west1-c. The POC aggregate/global rack checks do not reject that existing pair. rack-awareness: database 5 range 0-16383 shares a rack"
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
     },
     {
       "command": "can-upscale",
@@ -164,7 +194,13 @@
       "poc_output": "OK",
       "poc_score": 2,
       "divergence_reason": "F-8",
-      "divergence_evidence": "REQ-05 checks every database placement; the recorded POC topology has DB 5 primary node 2 and replica node 5 on europe-west1-c. The POC aggregate/global rack checks do not reject that existing pair. rack-awareness: database 5 range 0-16383 shares a rack"
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
     },
     {
       "command": "optimize",
@@ -191,7 +227,13 @@
         ]
       ],
       "divergence_reason": "F-8",
-      "divergence_evidence": "REQ-05 checks every database placement; the recorded POC topology has DB 5 primary node 2 and replica node 5 on europe-west1-c. The POC aggregate/global rack checks do not reject that existing pair. rack-awareness: database 5 range 0-16383 shares a rack"
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
     },
     {
       "command": "optimize",
@@ -218,7 +260,13 @@
         ]
       ],
       "divergence_reason": "F-8",
-      "divergence_evidence": "REQ-05 checks every database placement; the recorded POC topology has DB 5 primary node 2 and replica node 5 on europe-west1-c. The POC aggregate/global rack checks do not reject that existing pair. rack-awareness: database 5 range 0-16383 shares a rack"
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
     },
     {
       "command": "optimize",
@@ -264,7 +312,13 @@
         ]
       ],
       "divergence_reason": "F-8",
-      "divergence_evidence": "REQ-05 checks every database placement; the recorded POC topology has DB 5 primary node 2 and replica node 5 on europe-west1-c. The POC aggregate/global rack checks do not reject that existing pair. rack-awareness: database 5 range 0-16383 shares a rack"
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
     },
     {
       "command": "optimize",

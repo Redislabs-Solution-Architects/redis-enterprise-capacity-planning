@@ -49,6 +49,7 @@ if [[ "$recap_owned" != 1 ]]; then echo 'BLOCKED: Redis readiness timeout' >&2; 
 "$recap_python" - "$recap_root" "$recap_poc" "$recap_cli" <<'PY'
 from argparse import Namespace
 from collections import Counter
+from copy import deepcopy
 import json
 from pathlib import Path
 import re
@@ -62,6 +63,7 @@ from recap.model import capacity
 from recap.planner.create import plan as create
 from recap.planner.upscale import plan as upscale
 from recap.planner.optimize import plan as optimize
+from recap.verifier import verify
 
 def command(*args):
     result=subprocess.run([cli,'-h','127.0.0.1','-p','6390','--raw',*map(str,args)],check=True,capture_output=True,text=True)
@@ -80,11 +82,33 @@ cases=[]
 def run(*args):
     return command('EVAL',lua,0,*args)
 
+def counterfactual_matches(case,state):
+    kind=case['command']
+    if kind=='can-create':
+        result=create(state,**case['args'])
+        matched=result['verdict']==case['verdict']
+    elif kind=='can-upscale':
+        result=upscale(state,**case['args'])
+        matched=result['verdict'] in {2:{'feasible'},1:{'feasible','feasible-in-steps'},0:{'infeasible'}}[case['poc_score']]
+    elif kind=='optimize':
+        options=Namespace(scope='node',db=None,rack=None,level=1,need=None,reserve_shard_size=None,explain=False,**case['args'])
+        result=optimize(state,options)
+        matched=[[s['shard_uid'],s['from_node'],s['to_node']] for s in result['plan']]==case['moves']
+    else:
+        return False
+    verify(state,result['plan'],result.get('goal') if result['verdict'] in ('feasible','feasible-in-steps','goal-met') else None)
+    return matched
+
 def record(case,equal):
     if not equal:
-        if baseline and all(v.code=='rack-awareness' for v in baseline):
+        counterfactual=deepcopy(snapshot)
+        uids=sorted({v.bdb_uid for v in baseline if v.code=='rack-awareness'})
+        for db in counterfactual['bdbs']:
+            if db['uid'] in uids:db['rack_aware']=False
+        if baseline and all(v.code=='rack-awareness' for v in baseline) and not violations(counterfactual) and counterfactual_matches(case,counterfactual):
             case['divergence_reason']='F-8'
-            case['divergence_evidence']='REQ-05 checks every database placement; the recorded POC topology has DB 5 primary node 2 and replica node 5 on europe-west1-c. The POC aggregate/global rack checks do not reject that existing pair. '+ '; '.join(map(str,baseline))
+            case['divergence_evidence']='The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. '+ '; '.join(map(str,baseline))
+            case['divergence_proof']=dict(method='per-database-rack-counterfactual',database_uids=uids)
         else:
             raise RuntimeError('Unclassified P-1 divergence: '+json.dumps(case))
     cases.append(case)

@@ -38,8 +38,8 @@ def violations(state):
     if license and license['ram_shards_in_use']>license['ram_shards_limit']:
         errors.append(Violation('license','RAM shard limit exceeded'))
     for (uid,slots),copies in pairs.items():
-        db=dbs[uid]
-        if not db['replication']:
+        db=dbs.get(uid)
+        if db is not None and not db['replication']:
             continue
         masters=[s for s in copies if s['role']=='master']
         replicas=[s for s in copies if s['role']=='replica']
@@ -47,6 +47,6 @@ def violations(state):
             for replica in replicas:
                 if master['node_uid']==replica['node_uid']:
                     errors.append(Violation('anti-affinity',f'database {uid} range {slots} shares a node',uid))
-                elif db['rack_aware'] and nodes[master['node_uid']]['rack_id']==nodes[replica['node_uid']]['rack_id']:
+                elif db is not None and db['rack_aware'] and nodes[master['node_uid']]['rack_id']==nodes[replica['node_uid']]['rack_id']:
                     errors.append(Violation('rack-awareness',f'database {uid} range {slots} shares a rack',uid))
     return errors

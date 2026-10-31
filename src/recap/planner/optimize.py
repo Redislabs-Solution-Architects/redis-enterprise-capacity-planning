@@ -6,8 +6,14 @@ from recap.model import node_capacity, shard_size
 GIB=2**30
 
 
-def plan(snapshot,args):
+def plan(snapshot,args,*,reserved_ram=None,stop_when=None):
+    """Plan moves, optionally preserving per-node growth RAM for an upscale.
+
+    Standalone optimize uses the spec's default filters and score unchanged.
+    The upscale caller supplies its final-placement predicate to stop early.
+    """
     state=deepcopy(snapshot)
+    reserved_ram=reserved_ram or {}
     dbs={d['uid']:d for d in state['bdbs']}
     sizes={uid:shard_size(db) for uid,db in dbs.items()}
     largest=max(sizes.values(),default=0)
@@ -41,7 +47,7 @@ def plan(snapshot,args):
     if used is False or used=='policy': used=5*GIB if scope=='db' else None
     if minimum>maximum: raise ValueError('minimum shard size exceeds maximum')
     candidates=[s for s in state['shards'] if s['node_uid'] in scope_nodes and s['node_uid']!=densify_target
-                and s['bdb_uid']!=own_uid and not dbs[s['bdb_uid']]['unsupported_reason']
+                and s['bdb_uid'] in dbs and s['bdb_uid']!=own_uid and not dbs[s['bdb_uid']]['unsupported_reason']
                 and minimum<=sizes[s['bdb_uid']]<=maximum and (used is None or s['used_memory']<=used)]
     def order(shard):
         score=sizes[shard['bdb_uid']]+shard['used_memory']
@@ -56,6 +62,7 @@ def plan(snapshot,args):
         return sum(n['provisional_ram'] for n in current['nodes'] if n['uid'] in scope_nodes)-initial
 
     for shard_uid in ids:
+        if stop_when is not None and stop_when(state): break
         if args.need is not None and freed(state)>=args.need: break
         shard=next(s for s in state['shards'] if s['uid']==shard_uid)
         trial_base=deepcopy(state)
@@ -75,6 +82,7 @@ def plan(snapshot,args):
             if n['uid']==shard['node_uid'] or (scope=='rack' and n['uid'] in scope_nodes): continue
             if densify_target is not None and n['uid']!=densify_target: continue
             if node_capacity(trial_base,n,size)['capacity']<1: continue
+            if n['provisional_ram']-size<reserved_ram.get(n['uid'],0): continue
             if scope=='db' and n['uid'] in scope_nodes and n['provisional_ram']-size<reserve: continue
             trial=deepcopy(trial_base)
             source=next(x for x in trial['nodes'] if x['uid']==shard['node_uid'])

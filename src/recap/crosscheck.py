@@ -27,7 +27,9 @@ def compare(snapshot,args):
     if check=='can-create':
         result=create(snapshot,args.memory,args.shards,args.replication,args.rack_aware,args.placement)
         method,path='POST','/v1/bdbs?dry_run'
-        payload=dict(memory_size=args.memory,shards_count=args.shards,replication=args.replication)
+        payload=dict(memory_size=args.memory,shards_count=args.shards,replication=args.replication,
+                     rack_aware=snapshot['cluster']['rack_aware'] if args.rack_aware is None else args.rack_aware,
+                     shards_placement=args.placement or snapshot['cluster']['default_shards_placement'])
     else:
         db=next((d for d in snapshot['bdbs'] if str(d['uid'])==str(args.db) or d['name']==args.db),None)
         if db is None:raise ValueError('unknown database')

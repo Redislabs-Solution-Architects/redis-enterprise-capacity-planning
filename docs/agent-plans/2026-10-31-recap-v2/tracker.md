@@ -15,8 +15,8 @@ Statuses: `planning`, `running`, `blocked`, `failed`, `done`, `audited`. A task 
 | T9 can-upscale | REQ-07 | done | 2ab792e | Red: 6 failed. Focused: 6 passed in 0.12s. Whole suite: 114 passed, 2 skipped in 5.47s. Credential grep in src: zero matches; golden output not generated until T11. |
 | T10 cross-check | REQ-10 | done | cdd08ea | Red: 4 failed. Focused: 4 passed in 0.29s. Whole suite: 118 passed, 2 skipped in 7.76s. REQ-10: 3/3 scenarios; only dry_run request URLs; stale snapshot rejected before HTTP. |
 | T11 report | REQ-11 | done | 5a71fc9 | T8 blocker resolved. Markdown golden generated and reviewed; all report assertions pass. Combined focused proof: 17 passed, 1 skipped in 0.64s. Whole suite: 121 passed, 2 skipped in 7.35s. |
-| T12 parity, legacy, CI | P-1, REQ-12 | running | | Ready to commit. P-1: 16 cases on Redis 8.10.2; F-8: 9 divergences. Final whole suite: 125 passed in 4.40s, zero skips. Both source/golden greps clean. Legacy moved byte-for-byte; converter source locator adapted and tested. |
-| T13 audit | all | planning | | fresh session |
+| T12 parity, legacy, CI | P-1, REQ-12 | done | bf6643b | P-1: 16 cases on Redis 8.10.2; F-8: 9 divergences. Final whole suite: 125 passed in 4.40s, zero skips. Both source/golden greps clean. Legacy moved byte-for-byte; converter source locator adapted and tested. T13 fresh-session audit is next. |
+| T13 audit | all | running | — (read-only) | Initial verdict CHANGES_REQUIRED at bf6643b. Owner authorized fixes; three regressions repaired, partial round trips and CLI/property coverage extended, P-1 proofs hardened. Repair suite: 144 passed in 4.77s. Fresh independent re-audit pending repair commit. Initial audit preserved below. |
 
 Open items, outside the delivery gate: P-2 (lab, owner), D-1, D-2, D-3.
 
@@ -25,6 +25,86 @@ Owner instruction (2026-10-31): continue autonomously through T12, without the T
 Owner follow-up `go` (2026-10-31): authorizes the diagnosed T8 repair outside T11 ownership, including a corrective commit for an already committed task, then autonomous continuation of T11/T12. The earlier repeated-failure stop is cleared for this repair.
 
 Owner follow-up `go` after the sandbox explanation (2026-10-31): explicitly authorizes the P-1 harness outside the sandbox to bind only its dedicated scratch Redis on 127.0.0.1:6390 and shut it down with `shutdown nosave`.
+
+## T13 independent audit (2026-10-31)
+
+Historical first audit; subsequent owner-authorized remediation and re-audit receipts follow below.
+
+**Verdict: CHANGES_REQUIRED.** Audited HEAD: `bf6643b77e34408c496db30a75114865ac6bd2b7`, branch `feat/recap-v2`. Auditor: `t13_independent_audit`, fresh context without implementation chat history. No source/test changes, commits, pushes, merges, live calls, Redis startup or P-1 regeneration during this audit. Task completion receipts above record implementation history, not delivery approval.
+
+### Verification and preservation
+
+- Independent command: `rtk proxy .venv/bin/pytest -q` → `125 passed in 4.45s`, zero skips.
+- `grep -rE 'redis-cli|EVAL|flushdb' src/` → exit 1, empty output.
+- `grep -rE 'admin@admin.com|dev-pierre-lab' src/ tests/golden/` → exit 1, empty output. Both mean no matches, not tool errors.
+- Coordinator independently reproduced all three findings using bounded Python/respx calls, without editing files. The verified alternative for finding 1 passes the existing independent verifier.
+- Before/after digest for the 51 tracked files excluding this tracker is identical: SHA-256 `6cd05ee7933b6233c28317dc0073dfd4ef76886773ed5414aad3f192434687f7`. Dirty tracker and unrelated `.DS_Store` files were preserved. GitHub-hosted CI and other Python versions were not run.
+
+### Required findings
+
+1. **[P1] REQ-07 — feasible upscale incorrectly refused.** Sources: `src/recap/planner/upscale.py:73`, `:90`; `src/recap/planner/optimize.py:78`. Starting from `upscale-steps.json`, set node 1 free RAM to 1 GiB, node 2 to 4 GiB, and append a copy of node 3 as node 4/rack-d with 3 GiB free and zero shards. The snapshot validates. `can-upscale --snapshot - --db 1 --memory +8GiB --format json` returns exit 1, `infeasible`, `ram: node 1 over capacity`. A valid alternative is migrate shard 4 from node 1 to 4, migrate shard 6 from node 1 to 4, then set DB 1 memory to 10 GiB. The verifier accepts every step and the final goal; final free RAM is `[0, 0, 10, 0] GiB`, with DB 1's own shards unmoved. **Fix:** make migration planning preserve each target-host node's required upscale growth RAM and explore alternative eligible destinations when the preferred destination consumes it. Add this verified feasible alternative as a regression.
+
+2. **[P1] REQ-02/REQ-03 — partial collection output cannot be consumed with the documented opt-in.** Sources: `src/recap/collect.py:91`, `src/recap/snapshot.py:60`, `:78`. Mock `collect-8.2.json`, replacing `/v1/shards` with its first four entries (`[:-2]`, as in the existing collection test). `collect --allow-partial` exits 0; piping that JSON into `capacity --snapshot - --allow-partial --format json` exits 2 with `bdbs[2].shards_count: replicated database 3 requires one master and one replica per slot range; no shards found`. Full reference/pair validation runs before the partial opt-in. The documented invisible-database-reference condition is similarly unconditionally rejected. **Fix:** reconcile partial visibility and referential/pair checks, keep complete-snapshot validation strict, conservatively represent unknown information and add collect-to-compute round-trip coverage. The current opt-in test only checks metadata and request counts.
+
+3. **[P2] REQ-10 — RS and recap can evaluate different create questions.** Source: `src/recap/crosscheck.py:28`. With a fresh `no-rack.json` and mocked create dry-run, run `cross-check ... can-create --memory 2GiB --shards 1 --replication --rack-aware --placement dense`. The actual request body is `{"memory_size":2147483648,"shards_count":1,"replication":true}`; the local planner receives explicit rack awareness and dense placement, but RS receives neither. **Fix:** send the same resolved rack-awareness and placement settings in the dry-run payload, including defaults, and assert the body in HTTP tests.
+
+### Acceptance coverage
+
+All 31 acceptance scenarios have corresponding Given/When/Then docstrings. The owner-approved distinct-database correction to REQ-07 scenario 3 is documented and tested. Some test bodies do not assert every behavior stated in those docstrings.
+
+| REQ | Scenarios | Evidence / limits |
+|---|---:|---|
+| REQ-01 | 3/3 | Subprocess JSON/schema/verdict and invalid-input assertions; verdict mapping table present. |
+| REQ-02 | 4/4 | CLI-handler HTTP-fixture tests cover complete collection, partial refusal, Flex and 401. Partial opt-in consumption is missing and fails the round trip above. |
+| REQ-03 | 2/2 | Subprocess validation/path assertions, deterministic converter and synthetic topologies. |
+| REQ-04 | 3/3 | Direct model checks for slots, license and old-version unknown RAM, permitted by its unit strategy; scenario tests do not exercise CLI display. |
+| REQ-05 | 3/3 | Four-rack/no-replication/per-database regressions. Create property test varies topology; optimize property varies only one node's RAM in a fixed topology. |
+| REQ-06 | 2/2 | Planner-level P-1 and insufficient-RAM tests; scenario-specific CLI exit assertions absent. |
+| REQ-07 | 4/4 | Planner-level growth, summed growth, preliminary migrations and unsupported-target checks. Specified CLI exits not asserted in these scenario tests. Scenario 3 calls verifier; independent grep covers forbidden strings. |
+| REQ-08 | 4/4 | Planner-level P-1/densify/no-rack/own-shard tests; scenario-specific CLI exits absent. Replay and parity role checks present. |
+| REQ-09 | 1/1 | Faulty planner injected into CLI; asserts exit 5, step-1 message and empty stdout. |
+| REQ-10 | 3/3 | CLI-handler divergence/version/permission cases and stale-before-HTTP; request-body equivalence missing. |
+| REQ-11 | 1/1 | CLI-handler exit, exact node/rack/ladder row counts and golden equality, plus JSON/schema/warnings. |
+| REQ-12 | 1/1 | Source scan and independently repeated recursive grep; CI gates distinguish errors from no matches. |
+
+### P-1 divergence inventory
+
+The auditor compared all 16 recorded cases with current recap. Nine diverge, all labeled F-8; seven match. P-1 was audited from the committed file and generator only; recorded Redis version is 8.10.2, without an independent regeneration.
+
+| Case | POC | recap | Recorded reason |
+|---|---|---|---|
+| Create 10GiB:1, replicated | feasible | infeasible | F-8 |
+| Create 50GiB:1, replicated | feasible | infeasible | F-8 |
+| Upscale DB 1 to 10GiB:1 | score 2/direct | infeasible | F-8 |
+| Upscale DB 2 to 100GiB:2 | score 1/two-step permitted | infeasible | F-8 |
+| Upscale DB 4 to 50GiB:1 | score 2/direct | feasible-in-steps | F-8 |
+| Upscale DB 5 to 50GiB:1 | score 2/direct | infeasible | F-8 |
+| Optimize node 1 | shard 6, 1 → 4 | no moves | F-8 |
+| Optimize node 2 | shard 2, 2 → 5 | no moves | F-8 |
+| Optimize node 4 | shard 4, 4 → 2 | no moves | F-8 |
+
+The recorded explanation is DB 5's existing same-rack primary/replica pair (nodes 2 and 5 on europe-west1-c). Whole-state checking rejects plans that retain it; DB 4 requires preliminary moves. The generator's classification is broad: it assigns F-8 to any mismatch when all baseline violations are rack-awareness violations. This is not case-specific causality proof and can hide unrelated future regressions; no currently recorded unexplained mismatch was observed. P-1 emits no create placement because all create rungs are infeasible, and only the node-5 optimize parity case emits a migration. Separate synthetic tests provide additional heuristic coverage.
+
+### Remaining boundaries and next work
+
+- P-2 OPEN: owner live-lab comparison and version-fact confirmation, outside the delivery gate.
+- D-1 OPEN: exact second rack field and 2D rule. First-dimension checks and unverified warning exist.
+- D-2 OPEN: pre-8.0 free RAM at the shard limit. Explicit unknown path exists.
+- D-3 OPEN: RS failure mode and presentation emphasis.
+- REQ-12's spec deletion sentence conflicts with T12's move-only execution contract; legacy remains retained. An owner decision is needed to resolve literal retirement completeness; the auditor did not delete files.
+- Required next work: repair the three reproduced findings with regressions, address the coverage/parity evidence limitations, then rerun independent T13. No APPROVED verdict or full-delivery claim is justified by the green suite alone.
+
+## T13 remediation authorized by owner (2026-10-31)
+
+- Owner request: `go to fix`. Scope: repair the three reproduced audit findings, strengthen their CLI/round-trip/property evidence and P-1 causal classifications, then re-audit independently. Preserve unrelated dirty work, immutable spec and legacy contents; D-1/D-2/D-3 and the conflicting legacy deletion sentence remain owner decisions.
+- Tests first: `tests/test_audit_regressions.py` initially produced `8 failed, 1 passed in 0.34s`, reproducing the upscale false negative, partial output refusal and omitted dry-run flags. The stricter P-1 test failed before generation because recorded divergences lacked a case-specific proof.
+- REQ-07: upscale now reserves summed growth per target-host node when choosing migration destinations, and stops when its concrete final placement fits. The four-node audit example succeeds with migrations 4→node4 and 6→node4, then memory update, preserving target DB shards. Every emitted step still passes the independent verifier. Standalone optimizer defaults and ranking are unchanged.
+- REQ-02/03: only snapshots marked partial and accepted with `--allow-partial` may have invisible database references or missing pair members. Schema errors, absent node references and duplicate known roles remain errors; complete snapshots retain strict validation. Unknown database shards stay counted by reported node resources, are excluded from migrations, and do not receive invented rack policies or sizes. Upscale of a target with missing copies returns a partial-marked infeasible result explaining incomplete placement. New synthetic database IDs avoid visible references to invisible databases.
+- REQ-10: create dry-runs now send effective `rack_aware` and `shards_placement` values including resolved defaults; recorded-request tests cover explicit true/false and inherited policy.
+- Coverage: added CLI exit/schema assertions for feasible/infeasible create, direct/stepwise/infeasible/unsupported upscale, beneficial/densify/unmet-goal optimize; partial collect-to-capacity/create/upscale/all/optimize/report round trips for wholly missing DB shards, one missing copy and invisible database metadata; generated optimizer topologies vary 3–6 nodes, 1–5 shard pairs, sizes, used memory, slots, rack policy and levels 1/2.
+- P-1: regenerated all 16 cases on the previously authorized dedicated Redis 8.10.2 harness; exit 0 with automatic shutdown nosave. Nine F-8 divergences remain. Each now has a per-database-rack counterfactual proof: changing only the offending database's rack policy makes that exact verdict/move list match POC, with replay of every counterfactual step. The generator rejects unclassified mismatches; CI recomputes the proof instead of trusting its label. The actual fixture and its rack policy are unchanged.
+- Focused audit regressions + parity: `21 passed in 0.70s`. Full suite: `144 passed in 4.77s`, zero skips. Both grep gates return zero matches, and `git diff --check` passes. `docs/spec-v2.md` and `legacy/` are unchanged.
+- Changed paths: `src/recap/snapshot.py`, `src/recap/constraints.py`, `src/recap/planner/create.py`, `src/recap/planner/optimize.py`, `src/recap/planner/upscale.py`, `src/recap/crosscheck.py`, `tests/test_audit_regressions.py`, `tests/test_parity.py`, `tests/fixtures/poc-parity.json`, `tools/gen_poc_parity.sh`, and this tracker. Independent re-audit required before an approval claim.
 
 ## T12 final verification (2026-10-31)
 

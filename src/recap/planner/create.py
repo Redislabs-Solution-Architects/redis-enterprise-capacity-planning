@@ -11,7 +11,7 @@ def plan(snapshot,memory,shards,replication=False,rack_aware=None,placement=None
     state=deepcopy(snapshot)
     rack_aware=snapshot['cluster']['rack_aware'] if rack_aware is None else rack_aware
     placement=placement or snapshot['cluster']['default_shards_placement']
-    db=dict(uid=max([d['uid'] for d in state['bdbs']]+[0])+1,name='new-database',memory_size=memory,
+    db=dict(uid=max([d['uid'] for d in state['bdbs']]+[s['bdb_uid'] for s in state['shards']]+[0])+1,name='new-database',memory_size=memory,
             shards_count=shards,replication=replication,rack_aware=rack_aware,sharding=shards>1,
             shard_key_regex=[],shards_placement=placement,bigstore=False,crdt=False,unsupported_reason=None)
     size=shard_size(db)

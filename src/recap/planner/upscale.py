@@ -55,6 +55,9 @@ def plan(snapshot,db_uid,memory,shards=None,url=None):
     db=next((d for d in snapshot['bdbs'] if str(d['uid'])==str(db_uid) or d['name']==db_uid),None)
     if db is None:raise ValueError('unknown database')
     if db['unsupported_reason']:raise UnsupportedError('unsupported: '+db['unsupported_reason'])
+    copies=[s for s in snapshot['shards'] if s['bdb_uid']==db['uid']]
+    if snapshot['provenance']['partial'] and len(copies)!=db['shards_count']*(2 if db['replication'] else 1):
+        return dict(verdict='infeasible',reasons=['partial: target database shard placement incomplete'],plan=[])
     target=deepcopy(db)
     target['memory_size']=parse(memory,current=db['memory_size']) if isinstance(memory,str) else memory
     target['shards_count']=shards if shards is not None else db['shards_count']
@@ -70,9 +73,14 @@ def plan(snapshot,db_uid,memory,shards=None,url=None):
     final,reasons=target_state(snapshot,db,target)
     moves=[]
     if final is None:
+        growth={}
+        for shard in copies:
+            uid=shard['node_uid']
+            growth[uid]=growth.get(uid,0)+max(0,shard_size(target)-shard_size(db))
         options=Namespace(scope='db',db=str(db['uid']),node=None,rack=None,shard_size_min=None,shard_size_max=None,
                           shard_used_max=False,reserve_shard_size=None,need=None,level=2,explain=False)
-        optimized=optimize_plan(snapshot,options)
+        optimized=optimize_plan(snapshot,options,reserved_ram=growth,
+                                stop_when=lambda state: target_state(state,db,target)[0] is not None)
         if optimized['plan']:
             # Apply only the independently planned migrations; existing target DB shards stay in place.
             moved=deepcopy(snapshot)

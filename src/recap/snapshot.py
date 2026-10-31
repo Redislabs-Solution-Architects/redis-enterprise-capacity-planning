@@ -35,13 +35,18 @@ def json_path(parts):
     return path or "$"
 
 
-def validate(snapshot) -> list[str]:
-    """Return schema violations, then reference/pair violations for shaped input."""
+def validate(snapshot, *, allow_partial=False) -> list[str]:
+    """Validate schema and references; explicit partial opt-in tolerates missing visibility.
+
+    Missing nodes and duplicate known pair roles remain errors. An invisible
+    database's policy cannot be inferred from its visible shard references.
+    """
     schema = json.loads(files("recap").joinpath("schemas/snapshot.v1.json").read_text(encoding="utf-8"))
     validator = Draft202012Validator(schema, format_checker=FORMAT_CHECKER)
     errors = [f"{json_path(error.absolute_path)}: {error.message}" for error in validator.iter_errors(snapshot)]
     if errors:
         return errors
+    partial = allow_partial and snapshot['provenance']['partial']
 
     nodes = {node["uid"] for node in snapshot["nodes"]}
     bdbs = {bdb["uid"] for bdb in snapshot["bdbs"]}
@@ -49,7 +54,7 @@ def validate(snapshot) -> list[str]:
     for index, shard in enumerate(snapshot["shards"]):
         if shard["node_uid"] not in nodes:
             errors.append(f"shards[{index}].node_uid: node {shard['node_uid']} does not exist")
-        if shard["bdb_uid"] not in bdbs:
+        if shard["bdb_uid"] not in bdbs and not partial:
             errors.append(f"shards[{index}].bdb_uid: database {shard['bdb_uid']} does not exist")
         pairs[shard["bdb_uid"], shard["slots"]].append((index, shard["role"]))
 
@@ -57,10 +62,12 @@ def validate(snapshot) -> list[str]:
         if not bdb["replication"]:
             continue
         ranges = {slots: members for (uid, slots), members in pairs.items() if uid == bdb["uid"]}
-        if not ranges:
+        if not ranges and not partial:
             errors.append(f"bdbs[{index}].shards_count: replicated database {bdb['uid']} requires one master and one replica per slot range; no shards found")
         for slots, members in ranges.items():
-            if Counter(role for _, role in members) != {"master": 1, "replica": 1}:
+            roles = Counter(role for _, role in members)
+            invalid = any(count > 1 for count in roles.values()) if partial else roles != {"master": 1, "replica": 1}
+            if invalid:
                 path = f"shards[{members[0][0]}].slots"
                 errors.append(f"{path}: database {bdb['uid']}, range {slots!r} requires exactly one master and one replica")
     return errors
@@ -75,7 +82,7 @@ def load(path, *, allow_partial=False):
             snapshot = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
         raise SnapshotError(f"{path}: {exc}") from exc
-    errors = validate(snapshot)
+    errors = validate(snapshot, allow_partial=allow_partial)
     if errors:
         raise SnapshotError("\n".join(errors))
     if snapshot["provenance"]["partial"] and not allow_partial:
