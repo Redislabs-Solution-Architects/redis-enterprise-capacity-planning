@@ -53,6 +53,10 @@ def emit(command, verdict, snapshot, *, reasons=(), plan=(), output_format="text
                     for row in rows:
                         if isinstance(row, dict):
                             print(group + ': ' + ' '.join(f'{key}={format_gib(value) if key in ("free_ram", "shard_size") and isinstance(value,int) else value}' for key,value in row.items()))
+                        else:
+                            print(str(row))
+                else:
+                    print(f'{group}: {rows}')
     return exit_code(verdict)
 
 
@@ -143,7 +147,7 @@ def build_parser():
         sub.add_argument("--" + (scope if scope != "cluster" else "rack"), required=scope != "cluster")
         for flag in ("shard-size-min", "shard-size-max", "need", "reserve-shard-size"):
             sub.add_argument("--" + flag, type=size)
-        sub.add_argument("--shard-used-max", type=used_max)
+        sub.add_argument("--shard-used-max", type=used_max, default=False)
         sub.add_argument("--level", type=int, choices=[1, 2], default=1)
         sub.add_argument("--explain", action="store_true")
     report = commands.add_parser("report")
