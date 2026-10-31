@@ -11,16 +11,25 @@ Statuses: `planning`, `running`, `blocked`, `failed`, `done`, `audited`. A task 
 | T5 constraints | REQ-05 | done | 24321f1 | Red: 7 failed. Focused: 7 passed in 0.11s. Whole suite: 96 passed in 3.69s. REQ-05 scenario 3; scenarios 1/2 and property proof in T7. |
 | T6 verifier | REQ-09 | done | d67f1ae | Red: 2 failed. Focused: 2 passed in 0.22s. Whole suite: 98 passed in 4.08s. Injected faulty planner rejected in CLI output path. |
 | T7 can-create | REQ-06 | done | a920333 | Red: 4 failed, 1 skipped. Focused: 31 passed, 1 skipped in 1.41s. Whole suite: 102 passed, 1 skipped in 3.99s. P-1 deferred to T12; REQ-01 scenario 1 and REQ-05 regressions/property covered. |
-| T8 optimize | REQ-08 | done | d76db69 | Red: 6 failed, 1 skipped. Focused optimize + verifier: 8 passed, 1 skipped in 0.20s. Whole suite: 108 passed, 2 skipped in 3.78s. P-1 deferred to T12; checkpoint waived by owner. |
+| T8 optimize | REQ-08 | done | d76db69; repair 8b8f3ed | Owner-authorized repair checks the failover intermediate state before considering migration. New regression failed before the fix. Optimize/verifier/upscale/report: 17 passed, 1 skipped in 0.64s. Whole suite: 121 passed, 2 skipped in 7.35s. |
 | T9 can-upscale | REQ-07 | done | 2ab792e | Red: 6 failed. Focused: 6 passed in 0.12s. Whole suite: 114 passed, 2 skipped in 5.47s. Credential grep in src: zero matches; golden output not generated until T11. |
-| T10 cross-check | REQ-10 | running | | Tests-first implementation in progress. |
-| T11 report | REQ-11 | planning | | |
+| T10 cross-check | REQ-10 | done | cdd08ea | Red: 4 failed. Focused: 4 passed in 0.29s. Whole suite: 118 passed, 2 skipped in 7.76s. REQ-10: 3/3 scenarios; only dry_run request URLs; stale snapshot rejected before HTTP. |
+| T11 report | REQ-11 | running | | T8 blocker resolved. Markdown golden generated and reviewed; all report assertions pass. Combined focused proof: 17 passed, 1 skipped in 0.64s. Whole suite: 121 passed, 2 skipped in 7.35s. Commit pending. |
 | T12 parity, legacy, CI | P-1, REQ-12 | planning | | |
 | T13 audit | all | planning | | fresh session |
 
 Open items, outside the delivery gate: P-2 (lab, owner), D-1, D-2, D-3.
 
 Owner instruction (2026-10-31): continue autonomously through T12, without the T2/T8 checkpoints. Preserve the other coordinator limits; T13 remains a fresh-session audit.
+
+Owner follow-up `go` (2026-10-31): authorizes the diagnosed T8 repair outside T11 ownership, including a corrective commit for an already committed task, then autonomous continuation of T11/T12. The earlier repeated-failure stop is cleared for this repair.
+
+## Integration blocker found during T11 (2026-10-31)
+
+- Reproduction: `pytest tests/test_report.py -q` fails `test_req11_markdown_report`; the subsequent whole-suite run reproduces the same failure. Both executions report `internal-error: plan failed verification at step 1: rack-awareness: database 5 range 0-16383 shares a rack`.
+- Root cause: the POC records database 5's master on node 2 and replica on node 5, both on rack `europe-west1-c`. The T2 converter marks the RAM-only POC databases rack-aware, following its global policy. T8's level-2 path checks the migrated state, but omits `violations()` on the intermediate failover state. T9 consequently advertises DB 1's ladder target as `feasible-in-steps`, with `failover 7`, then migration `2 -> 4`. T11's independent replay correctly rejects the first step.
+- Required repair: add a regression and a constraint check for the failover intermediate state in T8 (`src/recap/planner/optimize.py`, `tests/test_optimize.py`); reject such candidates without weakening the verifier or changing fixture rack semantics. Then rerun T9/T11 and whole-suite proof. Those files are outside T11 ownership, and T8 already has its one task commit; the coordinator's ownership/one-commit limits and repeated-failure stop require owner direction before rework.
+- Protected/unrelated `.DS_Store` files remain untouched. `docs/spec-v2.md` remains unchanged. T12 has not started.
 
 ## Owner clarification and T2 evidence (2026-10-31)
 

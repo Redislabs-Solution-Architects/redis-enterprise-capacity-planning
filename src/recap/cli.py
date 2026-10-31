@@ -196,6 +196,21 @@ def main(argv=None):
     if args.command == "collect":
         from recap.collect import run
         return run(args)
+    if args.command == 'report':
+        from recap.snapshot import load, SnapshotError
+        from recap.report import build, markdown
+        from recap.verifier import VerificationError
+        try:
+            snapshot=load(args.snapshot,allow_partial=args.allow_partial)
+            data=build(snapshot,args.ladder)
+            if args.format=='json':return emit('report','ok',snapshot,details=data,output_format='json')
+            if snapshot['provenance']['partial']:print('PARTIAL: ok')
+            print(markdown(snapshot,data),end='')
+            return 0
+        except VerificationError as exc:
+            print(str(exc),file=sys.stderr);return 5
+        except (SnapshotError,ValueError) as exc:
+            print(str(exc),file=sys.stderr);return 2
     if args.command == 'cross-check':
         from recap.snapshot import load, SnapshotError
         from recap.crosscheck import compare
