@@ -73,8 +73,9 @@ def convert(path):
 
 def main():
     root = Path(__file__).resolve().parents[1]
+    poc = root / "legacy" if (root / "legacy/initcapaplan-test.sh").exists() else root
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path, default=root / "initcapaplan-test.sh")
+    parser.add_argument("--source", type=Path, default=poc / "initcapaplan-test.sh")
     parser.add_argument("--out", type=Path, default=root / "tests/fixtures/poc-5-nodes.json")
     args = parser.parse_args()
     snapshot = convert(args.source)

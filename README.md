@@ -6,12 +6,39 @@ The standalone Python CLI requires Python 3.10 or later. Install it with
 `pipx install .`, then run `recap --help`. For development, use a virtual
 environment and `pip install -e '.[test]'`, followed by `pytest -q`.
 
-The initial scaffold registers the v2 subcommands and size parsing. Feature
-handlers return exit 2 with `not implemented` until their task is delivered.
+The v2 commands collect snapshots, report capacity, simulate create/upscale
+placements, optimize shard placement and optionally compare RS dry-runs.
 Sizes require a suffix: `B`, `KiB`, `MiB`, `GiB`, `TiB`, `KB`, `MB`, `GB`,
 `TB`, or `G` (an alias for GiB). Only `can-upscale --memory` accepts `+SIZE`.
 Use `--shard-used-max none` for no limit. The implementation contracts and
 progress are in `docs/spec-v2.md` and `docs/agent-plans/2026-10-31-recap-v2/`.
+
+```bash
+recap snapshot validate --snapshot tests/fixtures/poc-5-nodes.json
+recap capacity --snapshot tests/fixtures/poc-5-nodes.json --shard-size 5GiB --format json
+recap can-create --snapshot tests/fixtures/poc-5-nodes.json --memory 50GiB --shards 2 --replication
+recap optimize node --snapshot tests/fixtures/no-rack.json --node 1 --shard-used-max none
+recap can-upscale --snapshot tests/fixtures/upscale-steps.json --db 1 --memory +4GiB --format json
+recap report --snapshot tests/fixtures/poc-5-nodes.json --format markdown
+```
+
+Collection uses HTTPS with certificate verification. Set `RECAP_USER` and
+`RECAP_PASSWORD` in the environment, use `--netrc`, or answer the interactive
+prompts. `recap collect --url https://cluster.example:9443 --out snapshot.json`
+reads the cluster; it never executes exported plans. `--allow-partial` opts
+into partial input and output; partial results stay explicitly marked.
+
+Exit codes are 0 for success, 1 for an infeasible target or unmet goal,
+2 for unusable input, 3 for API failure, 4 for unsupported targets and 5 for
+an internal verification failure. RS versions before 8.0 can report unknown
+free RAM at the shard limit. The unresolved second rack dimension produces
+`2d-rack-rule-unverified`.
+
+P-1 generation is explicit: `bash tools/gen_poc_parity.sh`. It requires
+Redis 8.x, uses only a dedicated temporary server on port 6390 and shuts it
+down with `shutdown nosave`. CI consumes the recorded parity fixture without
+starting Redis. Independent audit T13 and manual lab proof P-2 remain separate
+from implementation completion; consult the tracker for current evidence.
 
 - [Redis Enterprise Capacity Planning](#redis-enterprise-capacity-planning)
   - [Intro](#intro)

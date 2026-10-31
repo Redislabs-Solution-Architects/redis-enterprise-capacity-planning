@@ -1,0 +1,22 @@
+name: recap
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.10', '3.12', '3.14']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: pip install -e '.[test]'
+      - run: pytest -q
+      - name: No Redis runtime
+        run: |
+          if grep -rE 'redis-cli|EVAL|flushdb' src/; then exit 1; else test "$?" -eq 1; fi
+      - name: No embedded cluster credentials
+        run: |
+          if grep -rE 'admin@admin.com|dev-pierre-lab' src/ tests/golden/; then exit 1; else test "$?" -eq 1; fi
