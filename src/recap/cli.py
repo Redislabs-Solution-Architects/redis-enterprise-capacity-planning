@@ -90,9 +90,9 @@ def positive_int(value):
     return number
 
 
-def common(parser, *, snapshot=True, markdown=False):
+def common(parser, *, snapshot=True, markdown=False, required=True):
     if snapshot:
-        parser.add_argument("--snapshot", required=True, help="snapshot file, or - for stdin")
+        parser.add_argument("--snapshot", required=required, help="snapshot file, or - for stdin")
         parser.add_argument("--allow-partial", action="store_true")
     parser.add_argument("--format", choices=["text", "json"] + (["markdown"] if markdown else []), default="text")
 
@@ -157,13 +157,23 @@ def build_parser():
     actions = snapshot.add_subparsers(dest="snapshot_action", required=True)
     common(actions.add_parser("validate"))
     cross = commands.add_parser("cross-check")
-    common(cross)
-    cross.add_argument("--url", required=True)
+    common(cross,required=False)
+    cross.add_argument("--url")
     cross.add_argument("--max-age", type=float, default=600)
     checks = cross.add_subparsers(dest="check", required=True)
-    create_flags(checks.add_parser("can-create"))
-    upscale_flags(checks.add_parser("can-upscale"))
-    checks.add_parser("rebalance").add_argument("--db", required=True)
+    cross_create=checks.add_parser("can-create")
+    cross_upscale=checks.add_parser("can-upscale")
+    cross_rebalance=checks.add_parser("rebalance")
+    create_flags(cross_create)
+    upscale_flags(cross_upscale)
+    cross_rebalance.add_argument("--db", required=True)
+    for child in (cross_create,cross_upscale,cross_rebalance):
+        child.add_argument('--snapshot',default=argparse.SUPPRESS)
+        if child is not cross_upscale:child.add_argument('--url',default=argparse.SUPPRESS)
+        else:child.set_defaults(url=argparse.SUPPRESS)
+        child.add_argument('--max-age',type=float,default=argparse.SUPPRESS)
+        child.add_argument('--allow-partial',action='store_true',default=argparse.SUPPRESS)
+        child.add_argument('--format',choices=['text','json'],default=argparse.SUPPRESS)
     return parser
 
 
@@ -186,6 +196,21 @@ def main(argv=None):
     if args.command == "collect":
         from recap.collect import run
         return run(args)
+    if args.command == 'cross-check':
+        from recap.snapshot import load, SnapshotError
+        from recap.crosscheck import compare
+        from recap.planner.upscale import UnsupportedError
+        from recap.verifier import VerificationError
+        try:
+            if not args.snapshot or not args.url:raise ValueError('--snapshot and --url are required')
+            snapshot=load(args.snapshot,allow_partial=args.allow_partial)
+            return emit_plan('cross-check',snapshot,compare(snapshot,args),args)
+        except UnsupportedError as exc:
+            print(str(exc),file=sys.stderr);return 4
+        except VerificationError as exc:
+            print(str(exc),file=sys.stderr);return 5
+        except (SnapshotError,ValueError) as exc:
+            print(str(exc),file=sys.stderr);return 2
     if args.command == 'can-upscale':
         from recap.snapshot import load, SnapshotError
         from recap.verifier import VerificationError, verify

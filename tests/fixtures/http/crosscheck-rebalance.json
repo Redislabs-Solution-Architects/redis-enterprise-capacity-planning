@@ -1,0 +1,3 @@
+[
+  {"nodes": [{"node_uid": "3", "role": "master"}, {"node_uid": "1", "role": "slave"}], "slot_range": "0-16383"}
+]
