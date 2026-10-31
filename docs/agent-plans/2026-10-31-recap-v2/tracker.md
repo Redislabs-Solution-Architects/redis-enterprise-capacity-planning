@@ -4,8 +4,8 @@ Statuses: `planning`, `running`, `blocked`, `failed`, `done`, `audited`. A task 
 
 | Task | REQ | Status | Commit | Evidence / notes |
 |---|---|---|---|---|
-| T1 scaffold, units, CLI | REQ-01, SD-1 | planning | | |
-| T2 schema, validate, fixtures | REQ-03, SD-2 | planning | | checkpoint |
+| T1 scaffold, units, CLI | REQ-01, SD-1 | done | f77b7b9 | Tests first: 38 failed before package implementation (missing recap package). Editable install succeeded. Focused suite: 38 passed in 1.86s. Whole suite: 38 passed in 1.42s. REQ-01 scenarios 2 and 3 covered; scenario 1 remains assigned to T7. |
+| T2 schema, validate, fixtures | REQ-03, SD-2 | running | | Tests first: 25 failed, 6 passed before implementation. Focused suite: 37 passed in 3.35s. Whole suite: 75 passed in 4.21s. REQ-03 scenarios: 2/2. Commit pending; checkpoint after T2. |
 | T3 collector | REQ-02 | planning | | |
 | T4 capacity model | REQ-04 | planning | | |
 | T5 constraints | REQ-05 | planning | | |
@@ -19,3 +19,11 @@ Statuses: `planning`, `running`, `blocked`, `failed`, `done`, `audited`. A task 
 | T13 audit | all | planning | | fresh session |
 
 Open items, outside the delivery gate: P-2 (lab, owner), D-1, D-2, D-3.
+
+## Owner clarification and T2 evidence (2026-10-31)
+
+- Owner approved the REQ-07 scenario 3 correction in this chat: the 1 GiB and 2 GiB replicas in `upscale-steps.json` belong to databases 2 and 3 respectively, each with a primary of the same size. This overrides the scenario's reference to database 2 for both replicas. `docs/spec-v2.md` stays untouched.
+- T2 changed paths: `src/recap/cli.py`, `src/recap/snapshot.py`, `src/recap/schemas/snapshot.v1.json`, `tests/test_snapshot.py`, `tests/fixtures/poc-5-nodes.json`, `tests/fixtures/upscale-steps.json`, `tests/fixtures/densify.json`, `tests/fixtures/no-rack.json`, `tools/convert_poc_fixture.py`, and this tracker.
+- The converter preserves the POC's recorded shard topology and converts displayed GB/MB with binary multipliers, rounding fractional bytes to the nearest integer. The recorded SHARDS counts for nodes 3 and 4 are 0 despite each hosting a shard; the fixture derives these counts from the shard table and discloses the discrepancy in provenance warnings. Unknown license and absent metadata are disclosed there too.
+- Schema validation enforces RFC 3339 timestamps without adding jsonschema's optional format dependencies. Referential checks cover missing nodes, missing databases and exactly one master/replica per replicated slot range. Partial input requires explicit `--allow-partial`.
+- Downstream fixture impact: all four snapshots load and validate; deterministic POC conversion reproduces the committed fixture; synthetic topology assertions pass. T3 is the next task after the owner's T2 checkpoint review. No live cluster calls; no push or merge.

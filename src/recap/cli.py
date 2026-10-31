@@ -151,6 +151,14 @@ def build_parser():
 def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command == "snapshot" and args.snapshot_action == "validate":
+        from recap.snapshot import SnapshotError, load
+        try:
+            snapshot = load(args.snapshot, allow_partial=args.allow_partial)
+        except SnapshotError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        return emit("snapshot validate", "ok", snapshot, output_format=args.format)
     print(f"{args.command}: not implemented", file=sys.stderr)
     return 2
 

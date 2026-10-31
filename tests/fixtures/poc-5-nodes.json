@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "collected_at": "2026-10-31T00:00:00Z",
+  "source": "fixture",
+  "cluster": {
+    "name": "poc-5-nodes",
+    "rs_version": "6.2.10-100",
+    "mixed_versions": false,
+    "rack_aware": true,
+    "default_shards_placement": "sparse",
+    "license": null
+  },
+  "nodes": [
+    {
+      "uid": 1,
+      "rack_id": "europe-west1-b",
+      "second_rack_id": null,
+      "total_memory": 67441723965,
+      "provisional_ram": 46589657743,
+      "max_redis_servers": 100,
+      "shard_count": 2,
+      "accept_servers": true,
+      "status": "active"
+    },
+    {
+      "uid": 2,
+      "rack_id": "europe-west1-c",
+      "second_rack_id": null,
+      "total_memory": 67441723965,
+      "provisional_ram": 46761456435,
+      "max_redis_servers": 100,
+      "shard_count": 2,
+      "accept_servers": true,
+      "status": "active"
+    },
+    {
+      "uid": 3,
+      "rack_id": "europe-west1-d",
+      "second_rack_id": null,
+      "total_memory": 67441723965,
+      "provisional_ram": 26295937270,
+      "max_redis_servers": 100,
+      "shard_count": 1,
+      "accept_servers": true,
+      "status": "active"
+    },
+    {
+      "uid": 4,
+      "rack_id": "europe-west1-b",
+      "second_rack_id": null,
+      "total_memory": 67441723965,
+      "provisional_ram": 26295937270,
+      "max_redis_servers": 100,
+      "shard_count": 1,
+      "accept_servers": true,
+      "status": "active"
+    },
+    {
+      "uid": 5,
+      "rack_id": "europe-west1-c",
+      "second_rack_id": null,
+      "total_memory": 67441723965,
+      "provisional_ram": 42520176230,
+      "max_redis_servers": 100,
+      "shard_count": 2,
+      "accept_servers": true,
+      "status": "active"
+    }
+  ],
+  "bdbs": [
+    {
+      "uid": 1,
+      "name": "capaplan",
+      "memory_size": 2147483648,
+      "shards_count": 1,
+      "replication": true,
+      "rack_aware": true,
+      "sharding": false,
+      "shard_key_regex": [],
+      "shards_placement": "sparse",
+      "bigstore": false,
+      "crdt": false,
+      "unsupported_reason": null
+    },
+    {
+      "uid": 2,
+      "name": "testscal",
+      "memory_size": 53687091200,
+      "shards_count": 1,
+      "replication": true,
+      "rack_aware": true,
+      "sharding": false,
+      "shard_key_regex": [],
+      "shards_placement": "sparse",
+      "bigstore": false,
+      "crdt": false,
+      "unsupported_reason": null
+    },
+    {
+      "uid": 4,
+      "name": "db5G1",
+      "memory_size": 10737418240,
+      "shards_count": 1,
+      "replication": true,
+      "rack_aware": true,
+      "sharding": false,
+      "shard_key_regex": [],
+      "shards_placement": "sparse",
+      "bigstore": false,
+      "crdt": false,
+      "unsupported_reason": null
+    },
+    {
+      "uid": 5,
+      "name": "db5G2",
+      "memory_size": 10737418240,
+      "shards_count": 1,
+      "replication": true,
+      "rack_aware": true,
+      "sharding": false,
+      "shard_key_regex": [],
+      "shards_placement": "sparse",
+      "bigstore": false,
+      "crdt": false,
+      "unsupported_reason": null
+    }
+  ],
+  "shards": [
+    {
+      "uid": 1,
+      "bdb_uid": 1,
+      "node_uid": 1,
+      "role": "master",
+      "slots": "0-16383",
+      "used_memory": 15435039
+    },
+    {
+      "uid": 2,
+      "bdb_uid": 1,
+      "node_uid": 2,
+      "role": "replica",
+      "slots": "0-16383",
+      "used_memory": 15309210
+    },
+    {
+      "uid": 3,
+      "bdb_uid": 2,
+      "node_uid": 3,
+      "role": "master",
+      "slots": "0-16383",
+      "used_memory": 61572383
+    },
+    {
+      "uid": 4,
+      "bdb_uid": 2,
+      "node_uid": 4,
+      "role": "replica",
+      "slots": "0-16383",
+      "used_memory": 61446554
+    },
+    {
+      "uid": 5,
+      "bdb_uid": 4,
+      "node_uid": 5,
+      "role": "master",
+      "slots": "0-16383",
+      "used_memory": 60827894
+    },
+    {
+      "uid": 6,
+      "bdb_uid": 4,
+      "node_uid": 1,
+      "role": "replica",
+      "slots": "0-16383",
+      "used_memory": 60785951
+    },
+    {
+      "uid": 7,
+      "bdb_uid": 5,
+      "node_uid": 2,
+      "role": "master",
+      "slots": "0-16383",
+      "used_memory": 60911780
+    },
+    {
+      "uid": 8,
+      "bdb_uid": 5,
+      "node_uid": 5,
+      "role": "replica",
+      "slots": "0-16383",
+      "used_memory": 60869837
+    }
+  ],
+  "provenance": {
+    "collector_user_role": null,
+    "partial": false,
+    "partial_reasons": [],
+    "warnings": [
+      "Recorded rladmin GB/MB use binary units; displayed fractions rounded to the nearest whole byte.",
+      "Unknown POC license, second rack IDs and shard regexes are represented by null or empty values; unreported feature flags use the POC's RAM-only, rack-aware topology.",
+      "node 3: recorded shard_count 0 replaced by 1 from the recorded shard table.",
+      "node 4: recorded shard_count 0 replaced by 1 from the recorded shard table."
+    ],
+    "rs_semantics": {
+      "provisional_ram": "pre-8.0"
+    }
+  }
+}

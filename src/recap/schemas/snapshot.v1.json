@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "recap snapshot v1 (SD-2)",
+  "type": "object",
+  "required": ["schema_version", "collected_at", "source", "cluster", "nodes", "bdbs", "shards", "provenance"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "collected_at": {"type": "string", "format": "date-time"},
+    "source": {"enum": ["rest", "file", "fixture"]},
+    "cluster": {
+      "type": "object",
+      "required": ["name", "rs_version", "mixed_versions", "rack_aware", "default_shards_placement", "license"],
+      "properties": {
+        "name": {"type": "string"},
+        "rs_version": {"type": "string", "minLength": 1},
+        "mixed_versions": {"type": "boolean"},
+        "rack_aware": {"type": "boolean"},
+        "default_shards_placement": {"enum": ["dense", "sparse"]},
+        "license": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "required": ["ram_shards_limit", "ram_shards_in_use"],
+              "properties": {
+                "ram_shards_limit": {"$ref": "#/$defs/bytes"},
+                "ram_shards_in_use": {"$ref": "#/$defs/bytes"}
+              }
+            }
+          ]
+        }
+      },
+      "$comment": "Preserve overbooking settings under their reported names; SD-2 does not specify a fixed name or shape."
+    },
+    "nodes": {"type": "array", "items": {"$ref": "#/$defs/node"}},
+    "bdbs": {"type": "array", "items": {"$ref": "#/$defs/bdb"}},
+    "shards": {"type": "array", "items": {"$ref": "#/$defs/shard"}},
+    "provenance": {
+      "type": "object",
+      "required": ["collector_user_role", "partial", "partial_reasons", "warnings", "rs_semantics"],
+      "properties": {
+        "collector_user_role": {"type": ["string", "null"]},
+        "partial": {"type": "boolean"},
+        "partial_reasons": {"$ref": "#/$defs/strings"},
+        "warnings": {"$ref": "#/$defs/strings"},
+        "rs_semantics": {
+          "type": "object",
+          "properties": {"provisional_ram": {"enum": ["pre-8.0", "8.0+"]}}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "bytes": {"type": "integer", "minimum": 0},
+    "uid": {"type": "integer", "minimum": 1},
+    "rack": {"type": ["string", "null"]},
+    "strings": {"type": "array", "items": {"type": "string"}},
+    "node": {
+      "type": "object",
+      "required": ["uid", "rack_id", "second_rack_id", "total_memory", "provisional_ram", "max_redis_servers", "shard_count", "accept_servers", "status"],
+      "properties": {
+        "uid": {"$ref": "#/$defs/uid"},
+        "rack_id": {"$ref": "#/$defs/rack"},
+        "second_rack_id": {"$ref": "#/$defs/rack"},
+        "total_memory": {"$ref": "#/$defs/bytes"},
+        "provisional_ram": {"$ref": "#/$defs/bytes"},
+        "max_redis_servers": {"$ref": "#/$defs/bytes"},
+        "shard_count": {"$ref": "#/$defs/bytes"},
+        "accept_servers": {"type": "boolean"},
+        "status": {"type": "string"}
+      }
+    },
+    "bdb": {
+      "type": "object",
+      "required": ["uid", "name", "memory_size", "shards_count", "replication", "rack_aware", "sharding", "shard_key_regex", "shards_placement", "bigstore", "crdt", "unsupported_reason"],
+      "properties": {
+        "uid": {"$ref": "#/$defs/uid"},
+        "name": {"type": "string"},
+        "memory_size": {"$ref": "#/$defs/bytes"},
+        "shards_count": {"type": "integer", "minimum": 1},
+        "replication": {"type": "boolean"},
+        "rack_aware": {"type": "boolean"},
+        "sharding": {"type": "boolean"},
+        "shard_key_regex": {"type": ["array", "null"]},
+        "shards_placement": {"enum": ["dense", "sparse"]},
+        "bigstore": {"type": "boolean"},
+        "crdt": {"type": "boolean"},
+        "unsupported_reason": {"type": ["string", "null"]}
+      }
+    },
+    "shard": {
+      "type": "object",
+      "required": ["uid", "bdb_uid", "node_uid", "role", "slots", "used_memory"],
+      "properties": {
+        "uid": {"$ref": "#/$defs/uid"},
+        "bdb_uid": {"$ref": "#/$defs/uid"},
+        "node_uid": {"$ref": "#/$defs/uid"},
+        "role": {"enum": ["master", "replica"]},
+        "slots": {"type": "string", "minLength": 1},
+        "used_memory": {"$ref": "#/$defs/bytes"}
+      }
+    }
+  }
+}
