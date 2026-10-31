@@ -16,9 +16,11 @@ Statuses: `planning`, `running`, `blocked`, `failed`, `done`, `audited`. A task 
 | T10 cross-check | REQ-10 | done | cdd08ea | Red: 4 failed. Focused: 4 passed in 0.29s. Whole suite: 118 passed, 2 skipped in 7.76s. REQ-10: 3/3 scenarios; only dry_run request URLs; stale snapshot rejected before HTTP. |
 | T11 report | REQ-11 | done | 5a71fc9 | T8 blocker resolved. Markdown golden generated and reviewed; all report assertions pass. Combined focused proof: 17 passed, 1 skipped in 0.64s. Whole suite: 121 passed, 2 skipped in 7.35s. |
 | T12 parity, legacy, CI | P-1, REQ-12 | done | bf6643b | P-1: 16 cases on Redis 8.10.2; F-8: 9 divergences. Final whole suite: 125 passed in 4.40s, zero skips. Both source/golden greps clean. Legacy moved byte-for-byte; converter source locator adapted and tested. T13 fresh-session audit is next. |
-| T13 audit | all | running | repair 1788921; audit read-only | Initial verdict CHANGES_REQUIRED at bf6643b. Repairs committed at 1788921793a51dc3a9d3b287b06295384a3cb16a; local suite: 144 passed in 4.77s. Independent fresh-context re-audit t13_reaudit_fixes running against that exact HEAD. Initial audit preserved below. |
+| T13 audit | all | audited | repairs 1788921, d508e4a; audit read-only | APPROVED for bounded offline T13 scope at d508e4aff533642981a0556f13f3fa5179004c7e. Independent final proof: 146 passed in 5.18s, zero skips; both greps exit 1 with no matches. All four reproduced defects resolved. P-2/D-1/D-2/D-3 and the legacy deletion boundary remain open. See final audit receipt. |
 
 Open items, outside the delivery gate: P-2 (lab, owner), D-1, D-2, D-3.
+
+Owner publication instruction (2026-10-31): `commit, push , merge`. This explicitly supersedes the earlier no-push/no-merge execution boundary for the completed recap v2 work. Commit the final T13 approval receipt, publish `feat/recap-v2`, and integrate it into the repository's default branch through normal required checks. Preserve unrelated `.DS_Store` files and do not resolve the remaining product decisions or delete retained legacy code.
 
 Owner instruction (2026-10-31): continue autonomously through T12, without the T2/T8 checkpoints. Preserve the other coordinator limits; T13 remains a fresh-session audit.
 
@@ -113,6 +115,18 @@ The recorded explanation is DB 5's existing same-rack primary/replica pair (node
 - Follow-up regression tests reproduced both variants before implementation: `2 failed, 19 deselected in 0.29s`. The guard now requires exactly the expected number of target ranges and exactly one master/replica per replicated range (or one master for a non-replicated range). Incomplete partial placement returns the existing partial-marked infeasible explanation; strict complete-snapshot checks and verifier remain unchanged.
 - CI now explicitly replays counterfactual create and upscale plans as well as optimizer plans, closing the second auditor's proof-maintenance observation.
 - Follow-up focused proof: `23 passed in 0.64s`. Full suite: `146 passed in 5.58s`, zero skips. Changed follow-up files: `src/recap/planner/upscale.py`, `tests/test_audit_regressions.py`, `tests/test_parity.py`, and this tracker. Fresh independent final verification pending.
+
+## T13 final independent approval (2026-10-31)
+
+**APPROVED for the bounded offline T13 gate.** Exact audited HEAD: `d508e4aff533642981a0556f13f3fa5179004c7e`, branch `feat/recap-v2`. Fresh-context auditor: `t13_final_verification`. No new material defect or required corrective finding remains. Corrective commits: `1788921793a51dc3a9d3b287b06295384a3cb16a` and `d508e4aff533642981a0556f13f3fa5179004c7e`.
+
+- Independent `rtk proxy .venv/bin/pytest -q`: **146 passed in 5.18s**, zero skips, exit 0.
+- Both exact required greps returned exit 1 and empty output (no matches, no execution error): Redis runtime patterns in `src/`; embedded cluster identity patterns in `src/` and `tests/golden/`.
+- All four reproduced defects are resolved: per-node upscale growth reservation; partial collection consumption; effective create dry-run options; partial target pair/range completeness. The auditor confirmed the original upscale's alternative migration plan and final `[0,0,10,0] GiB` RAM, partial collect/compute round trips and strict complete validation, explicit/default request bodies, conservative incomplete targets, and additional complete partial target cases with one/two ranges and with/without replication.
+- All 31 Given/When/Then acceptance scenarios were checked. Coverage counts: REQ-01 3/3; REQ-02 4/4; REQ-03 2/2; REQ-04 3/3; REQ-05 3/3; REQ-06 2/2; REQ-07 4/4; REQ-08 4/4; REQ-09 1/1; REQ-10 3/3; REQ-11 1/1; REQ-12 1/1. Planner-level scenarios are supplemented by shared exit-code checks, CLI regressions and independent exact subprocess probes. The accepted distinct-database REQ-07 scenario correction is retained.
+- P-1: 16 cases; seven matches and nine F-8 divergences, identical case inventory to the audit tables above. The final auditor independently repeated every per-database-rack counterfactual and replayed every plan. Each exact divergent verdict/move list then matches POC. CI now replays counterfactual create/upscale plans too. Counts: **F-8 = 9; all other classes = 0**. Recorded Redis version 8.10.2; this audit did not regenerate it.
+- Read-only preservation: no auditor edits, commits, Redis startup or real-cluster calls. The coordinator verified identical before/after digest for all 52 tracked files except this tracker: SHA-256 `58b541feb01112803b8b586f10a751f6db38a64f7939a1de45525d28c21631a9`. The immutable spec, retained legacy contents and unrelated `.DS_Store` files remain preserved. This final audit receipt is intentionally not committed during read-only T13.
+- Boundaries remain explicit: **P-2, D-1, D-2, D-3 OPEN**. Legacy is retained under the owner's move-only/no-deletion execution authorization despite the conflicting spec deletion sentence. The approval does not resolve that owner boundary, establish hosted CI or cross-version execution, qualify live RS behavior, or approve execution of exported plans. No push or merge occurred.
 
 ## T12 final verification (2026-10-31)
 
