@@ -1,5 +1,18 @@
 # Redis Enterprise Capacity Planning
 
+## recap v2 (in development)
+
+The standalone Python CLI requires Python 3.10 or later. Install it with
+`pipx install .`, then run `recap --help`. For development, use a virtual
+environment and `pip install -e '.[test]'`, followed by `pytest -q`.
+
+The initial scaffold registers the v2 subcommands and size parsing. Feature
+handlers return exit 2 with `not implemented` until their task is delivered.
+Sizes require a suffix: `B`, `KiB`, `MiB`, `GiB`, `TiB`, `KB`, `MB`, `GB`,
+`TB`, or `G` (an alias for GiB). Only `can-upscale --memory` accepts `+SIZE`.
+Use `--shard-used-max none` for no limit. The implementation contracts and
+progress are in `docs/spec-v2.md` and `docs/agent-plans/2026-10-31-recap-v2/`.
+
 - [Redis Enterprise Capacity Planning](#redis-enterprise-capacity-planning)
   - [Intro](#intro)
   - [Concepts / Architecture](#concepts--architecture)
