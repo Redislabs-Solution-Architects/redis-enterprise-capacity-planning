@@ -94,7 +94,7 @@ def common(parser, *, snapshot=True, markdown=False, required=True):
     if snapshot:
         parser.add_argument("--snapshot", required=required, help="snapshot file, or - for stdin")
         parser.add_argument("--allow-partial", action="store_true")
-    parser.add_argument("--format", choices=["text", "json"] + (["markdown"] if markdown else []), default="text")
+    parser.add_argument("--format", choices=["text", "json"] + (["markdown", "html"] if markdown else []), default="text")
 
 
 def create_flags(parser):
@@ -153,6 +153,8 @@ def build_parser():
     report = commands.add_parser("report")
     common(report, markdown=True)
     report.add_argument("--ladder")
+    report.add_argument('--out',help='HTML output path; omit or use - for stdout')
+    report.add_argument('--open',dest='open_report',action='store_true',help='open the generated HTML file in a browser')
     snapshot = commands.add_parser("snapshot")
     actions = snapshot.add_subparsers(dest="snapshot_action", required=True)
     common(actions.add_parser("validate"))
@@ -201,15 +203,38 @@ def main(argv=None):
         from recap.report import build, markdown
         from recap.verifier import VerificationError
         try:
+            if args.out and args.format!='html':raise ValueError('--out is supported for --format html')
+            if args.open_report and (args.format!='html' or not args.out or args.out=='-'):
+                raise ValueError('--open requires --format html and --out PATH')
             snapshot=load(args.snapshot,allow_partial=args.allow_partial)
             data=build(snapshot,args.ladder)
+            if args.format=='html':
+                from pathlib import Path
+                from recap.html_report import render
+                document=render(snapshot,data)
+                if args.out and args.out!='-':
+                    target=Path(args.out)
+                    if args.snapshot!='-' and (target.resolve()==Path(args.snapshot).resolve()
+                                               or (target.exists() and target.samefile(args.snapshot))):
+                        raise ValueError('HTML output must not overwrite the input snapshot')
+                    target.write_text(document,encoding='utf-8')
+                    print(f'HTML report written to {target.resolve()}',file=sys.stderr)
+                    if args.open_report:
+                        import webbrowser
+                        try:
+                            opened=webbrowser.open(target.resolve().as_uri())
+                        except webbrowser.Error:
+                            opened=False
+                        if not opened:print('Browser could not be opened; the HTML report is saved.',file=sys.stderr)
+                else:print(document,end='')
+                return 0
             if args.format=='json':return emit('report','ok',snapshot,details=data,output_format='json')
             if snapshot['provenance']['partial']:print('PARTIAL: ok')
             print(markdown(snapshot,data),end='')
             return 0
         except VerificationError as exc:
             print(str(exc),file=sys.stderr);return 5
-        except (SnapshotError,ValueError) as exc:
+        except (SnapshotError,ValueError,OSError) as exc:
             print(str(exc),file=sys.stderr);return 2
     if args.command == 'cross-check':
         from recap.snapshot import load, SnapshotError
