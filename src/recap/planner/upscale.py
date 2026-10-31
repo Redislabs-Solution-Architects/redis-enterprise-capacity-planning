@@ -1,5 +1,6 @@
 """REQ-07 fixed existing placements, optional migrations and conditional RS calls."""
 from argparse import Namespace
+from collections import Counter
 from copy import deepcopy
 from urllib.parse import urlsplit
 from recap.constraints import violations
@@ -56,8 +57,13 @@ def plan(snapshot,db_uid,memory,shards=None,url=None):
     if db is None:raise ValueError('unknown database')
     if db['unsupported_reason']:raise UnsupportedError('unsupported: '+db['unsupported_reason'])
     copies=[s for s in snapshot['shards'] if s['bdb_uid']==db['uid']]
-    if snapshot['provenance']['partial'] and len(copies)!=db['shards_count']*(2 if db['replication'] else 1):
-        return dict(verdict='infeasible',reasons=['partial: target database shard placement incomplete'],plan=[])
+    if snapshot['provenance']['partial']:
+        ranges={s['slots'] for s in copies}
+        roles={slot:Counter(s['role'] for s in copies if s['slots']==slot) for slot in ranges}
+        expected={'master':1,'replica':1} if db['replication'] else {'master':1}
+        complete=len(ranges)==db['shards_count'] and all(counts==expected for counts in roles.values())
+        if not complete:
+            return dict(verdict='infeasible',reasons=['partial: target database shard placement incomplete'],plan=[])
     target=deepcopy(db)
     target['memory_size']=parse(memory,current=db['memory_size']) if isinstance(memory,str) else memory
     target['shards_count']=shards if shards is not None else db['shards_count']

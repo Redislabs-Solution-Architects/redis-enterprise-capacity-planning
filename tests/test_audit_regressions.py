@@ -99,6 +99,28 @@ def test_req07_partial_target_with_missing_copies_is_conservative():
     assert any('partial' in reason and 'placement' in reason for reason in json.loads(out)['reasons'])
 
 
+@pytest.mark.parametrize('pair_count',[1,2])
+def test_req07_partial_target_requires_complete_pairs_for_each_range(pair_count):
+    from recap.snapshot import validate
+    s=partial_collection('whole-database')
+    if pair_count==1:
+        s['shards'][0]['slots']='0-8191'
+        s['shards'][1]['slots']='8192-16383'
+    else:
+        s['bdbs'][0].update(shards_count=2,memory_size=4*GIB,sharding=True)
+        s['shards'][0]['slots']=s['shards'][1]['slots']='0-8191'
+        s['shards'] += [dict(s['shards'][0],uid=7,slots='8192-12287'),
+                        dict(s['shards'][1],uid=8,slots='12288-16383')]
+        for node in s['nodes']:node['provisional_ram']=10*GIB
+    assert validate(s,allow_partial=True)==[]
+    code,out,err=invoke(['can-upscale','--snapshot','-','--allow-partial','--db','1','--memory','+2GiB','--format','json'],s)
+    assert code==1,err
+    output=json.loads(out)
+    assert output['partial'] is True
+    assert output['verdict']=='infeasible'
+    assert any('partial' in reason and 'placement' in reason for reason in output['reasons'])
+
+
 @pytest.mark.parametrize('flags,cluster,expected', [
     (['--rack-aware','--placement','dense'], {'rack_aware':False,'default_shards_placement':'sparse'}, (True,'dense')),
     (['--no-rack-aware','--placement','sparse'], {'rack_aware':True,'default_shards_placement':'dense'}, (False,'sparse')),

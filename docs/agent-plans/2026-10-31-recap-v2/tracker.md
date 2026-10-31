@@ -16,7 +16,7 @@ Statuses: `planning`, `running`, `blocked`, `failed`, `done`, `audited`. A task 
 | T10 cross-check | REQ-10 | done | cdd08ea | Red: 4 failed. Focused: 4 passed in 0.29s. Whole suite: 118 passed, 2 skipped in 7.76s. REQ-10: 3/3 scenarios; only dry_run request URLs; stale snapshot rejected before HTTP. |
 | T11 report | REQ-11 | done | 5a71fc9 | T8 blocker resolved. Markdown golden generated and reviewed; all report assertions pass. Combined focused proof: 17 passed, 1 skipped in 0.64s. Whole suite: 121 passed, 2 skipped in 7.35s. |
 | T12 parity, legacy, CI | P-1, REQ-12 | done | bf6643b | P-1: 16 cases on Redis 8.10.2; F-8: 9 divergences. Final whole suite: 125 passed in 4.40s, zero skips. Both source/golden greps clean. Legacy moved byte-for-byte; converter source locator adapted and tested. T13 fresh-session audit is next. |
-| T13 audit | all | running | — (read-only) | Initial verdict CHANGES_REQUIRED at bf6643b. Owner authorized fixes; three regressions repaired, partial round trips and CLI/property coverage extended, P-1 proofs hardened. Repair suite: 144 passed in 4.77s. Fresh independent re-audit pending repair commit. Initial audit preserved below. |
+| T13 audit | all | running | repair 1788921; audit read-only | Initial verdict CHANGES_REQUIRED at bf6643b. Repairs committed at 1788921793a51dc3a9d3b287b06295384a3cb16a; local suite: 144 passed in 4.77s. Independent fresh-context re-audit t13_reaudit_fixes running against that exact HEAD. Initial audit preserved below. |
 
 Open items, outside the delivery gate: P-2 (lab, owner), D-1, D-2, D-3.
 
@@ -105,6 +105,14 @@ The recorded explanation is DB 5's existing same-rack primary/replica pair (node
 - P-1: regenerated all 16 cases on the previously authorized dedicated Redis 8.10.2 harness; exit 0 with automatic shutdown nosave. Nine F-8 divergences remain. Each now has a per-database-rack counterfactual proof: changing only the offending database's rack policy makes that exact verdict/move list match POC, with replay of every counterfactual step. The generator rejects unclassified mismatches; CI recomputes the proof instead of trusting its label. The actual fixture and its rack policy are unchanged.
 - Focused audit regressions + parity: `21 passed in 0.70s`. Full suite: `144 passed in 4.77s`, zero skips. Both grep gates return zero matches, and `git diff --check` passes. `docs/spec-v2.md` and `legacy/` are unchanged.
 - Changed paths: `src/recap/snapshot.py`, `src/recap/constraints.py`, `src/recap/planner/create.py`, `src/recap/planner/optimize.py`, `src/recap/planner/upscale.py`, `src/recap/crosscheck.py`, `tests/test_audit_regressions.py`, `tests/test_parity.py`, `tests/fixtures/poc-parity.json`, `tools/gen_poc_parity.sh`, and this tracker. Independent re-audit required before an approval claim.
+
+## T13 second audit and follow-up repair (2026-10-31)
+
+- First repair commit: `1788921793a51dc3a9d3b287b06295384a3cb16a`. Independent fresh-context auditor `t13_reaudit_fixes` returned CHANGES_REQUIRED: `144 passed in 7.49s`, zero skips; both greps returned 1 with empty output. All three original reproductions were fixed. The auditor independently replayed all nine F-8 counterfactual plans and verified that an unrelated fabricated mismatch is rejected by the generator classifier.
+- Remaining [P2] REQ-02/07 finding: the partial-target guard checked total visible count only. The expected count can be present with incomplete members split across extra slot ranges. Reproduction: partial `upscale-steps.json`, omit DB 3 shards, split DB 1's master and replica into `0-8191` and `8192-16383`; `can-upscale --allow-partial --db 1 --memory +2GiB` returned internal-error exit 5. An independent four-copy/three-range variant also failed.
+- Follow-up regression tests reproduced both variants before implementation: `2 failed, 19 deselected in 0.29s`. The guard now requires exactly the expected number of target ranges and exactly one master/replica per replicated range (or one master for a non-replicated range). Incomplete partial placement returns the existing partial-marked infeasible explanation; strict complete-snapshot checks and verifier remain unchanged.
+- CI now explicitly replays counterfactual create and upscale plans as well as optimizer plans, closing the second auditor's proof-maintenance observation.
+- Follow-up focused proof: `23 passed in 0.64s`. Full suite: `146 passed in 5.58s`, zero skips. Changed follow-up files: `src/recap/planner/upscale.py`, `tests/test_audit_regressions.py`, `tests/test_parity.py`, and this tracker. Fresh independent final verification pending.
 
 ## T12 final verification (2026-10-31)
 

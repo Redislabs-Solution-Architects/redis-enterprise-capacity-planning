@@ -59,15 +59,17 @@ def test_p1_recorded_parity_and_inventory():
                     if db['uid'] in uids:db['rack_aware']=False
                 assert violations(counterfactual)==[]
                 if command=='can-create':
-                    assert create(counterfactual,**case['args'])['verdict']==case['verdict']
+                    alternative=create(counterfactual,**case['args'])
+                    assert alternative['verdict']==case['verdict']
                 elif command=='can-upscale':
-                    assert upscale(counterfactual,**case['args'])['verdict'] in expected
+                    alternative=upscale(counterfactual,**case['args'])
+                    assert alternative['verdict'] in expected
                 elif command=='optimize':
                     alternative=optimize(counterfactual,options)
-                    verify(counterfactual,alternative['plan'],alternative.get('goal') if alternative['verdict']=='goal-met' else None)
                     assert [[s['shard_uid'],s['from_node'],s['to_node']] for s in alternative['plan']]==case['moves']
                 else:
                     assert False,'F-8 cannot explain a capacity arithmetic mismatch'
+                verify(counterfactual,alternative['plan'],alternative.get('goal') if alternative['verdict'] in ('feasible','feasible-in-steps','goal-met') else None)
         else:
             assert not case.get('divergence_reason'),case
     assert counts=={'capacity':3,'can-create':4,'can-upscale':4,'optimize':5}
