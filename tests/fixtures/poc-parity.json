@@ -1,0 +1,349 @@
+{
+  "schema_version": 1,
+  "redis_version": "8.10.2",
+  "cases": [
+    {
+      "command": "capacity",
+      "args": {
+        "size": 1073741824
+      },
+      "poc_argv": [
+        "CAPA",
+        "1"
+      ],
+      "poc_output": "173",
+      "capacity": 173
+    },
+    {
+      "command": "capacity",
+      "args": {
+        "size": 5368709120
+      },
+      "poc_argv": [
+        "CAPA",
+        "5"
+      ],
+      "poc_output": "31",
+      "capacity": 31
+    },
+    {
+      "command": "capacity",
+      "args": {
+        "size": 26843545600
+      },
+      "poc_argv": [
+        "CAPA",
+        "25"
+      ],
+      "poc_output": "3",
+      "capacity": 3
+    },
+    {
+      "command": "can-create",
+      "args": {
+        "memory": 10737418240,
+        "shards": 1,
+        "replication": true
+      },
+      "poc_argv": [
+        "CANCREATE",
+        "10",
+        "1",
+        "true"
+      ],
+      "poc_output": "Globally the Cluster has enough capacity: it can host 31 shards with 5G and the database you wish to create requires 2. \nRack-Zone awareness constraints are met: OK\nIf you can create this database you can upscale a existing one to this capacity.",
+      "verdict": "feasible",
+      "divergence_reason": "F-8",
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
+    },
+    {
+      "command": "can-create",
+      "args": {
+        "memory": 53687091200,
+        "shards": 1,
+        "replication": true
+      },
+      "poc_argv": [
+        "CANCREATE",
+        "50",
+        "1",
+        "true"
+      ],
+      "poc_output": "Globally the Cluster has enough capacity: it can host 3 shards with 25G and the database you wish to create requires 2.\nRack-Zone awareness constraints are met: OK\nIf you can create this database you can upscale a existing one to this capacity.",
+      "verdict": "feasible",
+      "divergence_reason": "F-8",
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
+    },
+    {
+      "command": "can-create",
+      "args": {
+        "memory": 107374182400,
+        "shards": 2,
+        "replication": true
+      },
+      "poc_argv": [
+        "CANCREATE",
+        "100",
+        "2",
+        "true"
+      ],
+      "poc_output": "Not enough shard capacity in the Cluster to create this database 3 < 4.\nBut there is theorically enough RAM to host 3 additional shards.\nRack-Zone awareness constraints are not met! Racks europe-west1-b and europe-west1-d do not have enough capacity.",
+      "verdict": "infeasible"
+    },
+    {
+      "command": "can-create",
+      "args": {
+        "memory": 214748364800,
+        "shards": 4,
+        "replication": true
+      },
+      "poc_argv": [
+        "CANCREATE",
+        "200",
+        "4",
+        "true"
+      ],
+      "poc_output": "Not enough shard capacity in the Cluster to create this database 3 < 8.\nRack-Zone awareness constraints are not met! Racks europe-west1-b and europe-west1-d do not have enough capacity.",
+      "verdict": "infeasible"
+    },
+    {
+      "command": "can-upscale",
+      "args": {
+        "db_uid": "1",
+        "memory": 10737418240,
+        "shards": 1
+      },
+      "poc_argv": [
+        "CORR"
+      ],
+      "poc_output": "OK",
+      "poc_score": 2,
+      "divergence_reason": "F-8",
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
+    },
+    {
+      "command": "can-upscale",
+      "args": {
+        "db_uid": "2",
+        "memory": 107374182400,
+        "shards": 2
+      },
+      "poc_argv": [
+        "CORR"
+      ],
+      "poc_output": "OK",
+      "poc_score": 1,
+      "divergence_reason": "F-8",
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
+    },
+    {
+      "command": "can-upscale",
+      "args": {
+        "db_uid": "4",
+        "memory": 53687091200,
+        "shards": 1
+      },
+      "poc_argv": [
+        "CORR"
+      ],
+      "poc_output": "OK",
+      "poc_score": 2,
+      "divergence_reason": "F-8",
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
+    },
+    {
+      "command": "can-upscale",
+      "args": {
+        "db_uid": "5",
+        "memory": 53687091200,
+        "shards": 1
+      },
+      "poc_argv": [
+        "CORR"
+      ],
+      "poc_output": "OK",
+      "poc_score": 2,
+      "divergence_reason": "F-8",
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
+    },
+    {
+      "command": "optimize",
+      "args": {
+        "node": "1",
+        "shard_size_min": 1073741824,
+        "shard_size_max": 26843545600,
+        "shard_used_max": 26843545600
+      },
+      "poc_argv": [
+        "O",
+        "N",
+        "node:1",
+        "1",
+        "25",
+        "25"
+      ],
+      "poc_output": "Plan for node node:1 is done. It would permit to make 5G available.\nThe plan to execute would be the following:  \n\nrladmin migrate shard 6 preserve_roles target_node 4",
+      "moves": [
+        [
+          6,
+          1,
+          4
+        ]
+      ],
+      "divergence_reason": "F-8",
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
+    },
+    {
+      "command": "optimize",
+      "args": {
+        "node": "2",
+        "shard_size_min": 1073741824,
+        "shard_size_max": 26843545600,
+        "shard_used_max": 26843545600
+      },
+      "poc_argv": [
+        "O",
+        "N",
+        "node:2",
+        "1",
+        "25",
+        "25"
+      ],
+      "poc_output": "Plan for node node:2 is done. It would permit to make 1G available.\nThe plan to execute would be the following:  \n\nrladmin migrate shard 2 preserve_roles target_node 5",
+      "moves": [
+        [
+          2,
+          2,
+          5
+        ]
+      ],
+      "divergence_reason": "F-8",
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
+    },
+    {
+      "command": "optimize",
+      "args": {
+        "node": "3",
+        "shard_size_min": 1073741824,
+        "shard_size_max": 26843545600,
+        "shard_used_max": 26843545600
+      },
+      "poc_argv": [
+        "O",
+        "N",
+        "node:3",
+        "1",
+        "25",
+        "25"
+      ],
+      "poc_output": "No Plan for node node:3 done. There is no Shard meeting conditions.",
+      "moves": []
+    },
+    {
+      "command": "optimize",
+      "args": {
+        "node": "4",
+        "shard_size_min": 1073741824,
+        "shard_size_max": 26843545600,
+        "shard_used_max": 26843545600
+      },
+      "poc_argv": [
+        "O",
+        "N",
+        "node:4",
+        "1",
+        "25",
+        "25"
+      ],
+      "poc_output": "Plan for node node:4 is done. It would permit to make 25G available.\nThe plan to execute would be the following:  \n\nrladmin migrate shard 4 preserve_roles target_node 2",
+      "moves": [
+        [
+          4,
+          4,
+          2
+        ]
+      ],
+      "divergence_reason": "F-8",
+      "divergence_evidence": "The original snapshot has a per-database rack violation. Changing only the affected database rack_aware policy to false makes this exact case match the recorded POC verdict or move list; all counterfactual plan steps pass replay. The actual snapshot remains unchanged. rack-awareness: database 5 range 0-16383 shares a rack",
+      "divergence_proof": {
+        "method": "per-database-rack-counterfactual",
+        "database_uids": [
+          5
+        ]
+      }
+    },
+    {
+      "command": "optimize",
+      "args": {
+        "node": "5",
+        "shard_size_min": 1073741824,
+        "shard_size_max": 26843545600,
+        "shard_used_max": 26843545600
+      },
+      "poc_argv": [
+        "O",
+        "N",
+        "node:5",
+        "1",
+        "25",
+        "25"
+      ],
+      "poc_output": "Plan for node node:5 is done. It would permit to make 5G available.\nThe plan to execute would be the following:  \n\nrladmin migrate shard 8 preserve_roles target_node 4",
+      "moves": [
+        [
+          8,
+          5,
+          4
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "recap"
+version = "2.0.0"
+description = "Offline Redis Software capacity planning"
+requires-python = ">=3.10"
+dependencies = ["httpx", "jsonschema"]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis", "respx"]
+
+[project.scripts]
+recap = "recap.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = true
+
+[tool.setuptools.package-data]
+recap = ["schemas/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

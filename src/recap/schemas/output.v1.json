@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "recap output v1",
+  "type": "object",
+  "required": ["schema_version", "command", "verdict", "reasons", "partial", "snapshot"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "command": {"enum": ["collect", "capacity", "can-create", "can-upscale", "optimize", "report", "snapshot validate", "cross-check"]},
+    "verdict": {"enum": ["ok", "feasible", "feasible-in-steps", "infeasible", "goal-met", "goal-not-met", "no-plan"]},
+    "reasons": {"type": "array", "items": {"type": "string"}},
+    "plan": {"type": "array", "items": {"type": "object"}},
+    "partial": {"type": "boolean"},
+    "snapshot": {"type": "object"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"verdict": {"enum": ["infeasible", "goal-not-met", "no-plan"]}}},
+      "then": {"properties": {"reasons": {"minItems": 1}}}
+    }
+  ]
+}

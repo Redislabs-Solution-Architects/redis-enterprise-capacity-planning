@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "collected_at": "2026-10-31T00:00:00Z",
+  "source": "fixture",
+  "cluster": {
+    "name": "upscale-steps",
+    "rs_version": "8.2.0-78",
+    "mixed_versions": false,
+    "rack_aware": true,
+    "default_shards_placement": "sparse",
+    "license": null
+  },
+  "nodes": [
+    {
+      "uid": 1,
+      "rack_id": "rack-a",
+      "second_rack_id": null,
+      "total_memory": 68719476736,
+      "provisional_ram": 0,
+      "max_redis_servers": 100,
+      "shard_count": 3,
+      "accept_servers": true,
+      "status": "active"
+    },
+    {
+      "uid": 2,
+      "rack_id": "rack-b",
+      "second_rack_id": null,
+      "total_memory": 68719476736,
+      "provisional_ram": 10737418240,
+      "max_redis_servers": 100,
+      "shard_count": 1,
+      "accept_servers": true,
+      "status": "active"
+    },
+    {
+      "uid": 3,
+      "rack_id": "rack-c",
+      "second_rack_id": null,
+      "total_memory": 68719476736,
+      "provisional_ram": 10737418240,
+      "max_redis_servers": 100,
+      "shard_count": 2,
+      "accept_servers": true,
+      "status": "active"
+    }
+  ],
+  "bdbs": [
+    {
+      "uid": 1,
+      "name": "db-1",
+      "memory_size": 2147483648,
+      "shards_count": 1,
+      "replication": true,
+      "rack_aware": true,
+      "sharding": false,
+      "shard_key_regex": [],
+      "shards_placement": "sparse",
+      "bigstore": false,
+      "crdt": false,
+      "unsupported_reason": null
+    },
+    {
+      "uid": 2,
+      "name": "db-2",
+      "memory_size": 2147483648,
+      "shards_count": 1,
+      "replication": true,
+      "rack_aware": true,
+      "sharding": false,
+      "shard_key_regex": [],
+      "shards_placement": "sparse",
+      "bigstore": false,
+      "crdt": false,
+      "unsupported_reason": null
+    },
+    {
+      "uid": 3,
+      "name": "db-3",
+      "memory_size": 4294967296,
+      "shards_count": 1,
+      "replication": true,
+      "rack_aware": true,
+      "sharding": false,
+      "shard_key_regex": [],
+      "shards_placement": "sparse",
+      "bigstore": false,
+      "crdt": false,
+      "unsupported_reason": null
+    }
+  ],
+  "shards": [
+    {
+      "uid": 1,
+      "bdb_uid": 1,
+      "node_uid": 1,
+      "role": "master",
+      "slots": "0-16383",
+      "used_memory": 16777216
+    },
+    {
+      "uid": 2,
+      "bdb_uid": 1,
+      "node_uid": 2,
+      "role": "replica",
+      "slots": "0-16383",
+      "used_memory": 16777216
+    },
+    {
+      "uid": 3,
+      "bdb_uid": 2,
+      "node_uid": 3,
+      "role": "master",
+      "slots": "0-16383",
+      "used_memory": 16777216
+    },
+    {
+      "uid": 4,
+      "bdb_uid": 2,
+      "node_uid": 1,
+      "role": "replica",
+      "slots": "0-16383",
+      "used_memory": 16777216
+    },
+    {
+      "uid": 5,
+      "bdb_uid": 3,
+      "node_uid": 3,
+      "role": "master",
+      "slots": "0-16383",
+      "used_memory": 16777216
+    },
+    {
+      "uid": 6,
+      "bdb_uid": 3,
+      "node_uid": 1,
+      "role": "replica",
+      "slots": "0-16383",
+      "used_memory": 16777216
+    }
+  ],
+  "provenance": {
+    "collector_user_role": null,
+    "partial": false,
+    "partial_reasons": [],
+    "warnings": [
+      "Owner clarification 2026-10-31: the 1 GiB and 2 GiB replicas belong to databases 2 and 3, each paired with a primary of the same size."
+    ],
+    "rs_semantics": {
+      "provisional_ram": "8.0+"
+    }
+  }
+}

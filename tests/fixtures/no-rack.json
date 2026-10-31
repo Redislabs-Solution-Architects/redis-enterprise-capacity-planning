@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "collected_at": "2026-10-31T00:00:00Z",
+  "source": "fixture",
+  "cluster": {
+    "name": "no-rack",
+    "rs_version": "8.2.0-78",
+    "mixed_versions": false,
+    "rack_aware": false,
+    "default_shards_placement": "sparse",
+    "license": null
+  },
+  "nodes": [
+    {
+      "uid": 1,
+      "rack_id": null,
+      "second_rack_id": null,
+      "total_memory": 68719476736,
+      "provisional_ram": 536870912,
+      "max_redis_servers": 100,
+      "shard_count": 1,
+      "accept_servers": true,
+      "status": "active"
+    },
+    {
+      "uid": 2,
+      "rack_id": null,
+      "second_rack_id": null,
+      "total_memory": 68719476736,
+      "provisional_ram": 10737418240,
+      "max_redis_servers": 100,
+      "shard_count": 0,
+      "accept_servers": true,
+      "status": "active"
+    },
+    {
+      "uid": 3,
+      "rack_id": null,
+      "second_rack_id": null,
+      "total_memory": 68719476736,
+      "provisional_ram": 1073741824,
+      "max_redis_servers": 100,
+      "shard_count": 1,
+      "accept_servers": true,
+      "status": "active"
+    }
+  ],
+  "bdbs": [
+    {
+      "uid": 1,
+      "name": "db-1",
+      "memory_size": 2147483648,
+      "shards_count": 1,
+      "replication": true,
+      "rack_aware": false,
+      "sharding": false,
+      "shard_key_regex": [],
+      "shards_placement": "sparse",
+      "bigstore": false,
+      "crdt": false,
+      "unsupported_reason": null
+    }
+  ],
+  "shards": [
+    {
+      "uid": 1,
+      "bdb_uid": 1,
+      "node_uid": 3,
+      "role": "master",
+      "slots": "0-16383",
+      "used_memory": 16777216
+    },
+    {
+      "uid": 2,
+      "bdb_uid": 1,
+      "node_uid": 1,
+      "role": "replica",
+      "slots": "0-16383",
+      "used_memory": 16777216
+    }
+  ],
+  "provenance": {
+    "collector_user_role": null,
+    "partial": false,
+    "partial_reasons": [],
+    "warnings": [],
+    "rs_semantics": {
+      "provisional_ram": "8.0+"
+    }
+  }
+}
