@@ -186,6 +186,27 @@ def main(argv=None):
     if args.command == "collect":
         from recap.collect import run
         return run(args)
+    if args.command == 'can-upscale':
+        from recap.snapshot import load, SnapshotError
+        from recap.verifier import VerificationError, verify
+        from recap.planner.upscale import plan, all_databases, UnsupportedError
+        try:
+            snapshot=load(args.snapshot,allow_partial=args.allow_partial)
+            if args.all:
+                aggregate=all_databases(snapshot,args.ladder)
+                for result in aggregate['results']:
+                    verify(snapshot,result['plan'],result.get('goal') if exit_code(result['verdict'])==0 else None)
+                verdict='infeasible' if any(r['verdict']=='infeasible' for r in aggregate['rows']) else 'feasible'
+                return emit('can-upscale',verdict,snapshot,reasons=['some targets are infeasible'] if verdict=='infeasible' else [],details={'upscales':aggregate['rows']},output_format=args.format)
+            if args.memory is None:raise ValueError('--memory is required with --db')
+            result=plan(snapshot,args.db,args.memory,args.shards,args.url)
+            return emit_plan('can-upscale',snapshot,result,args)
+        except UnsupportedError as exc:
+            print(str(exc),file=sys.stderr);return 4
+        except VerificationError as exc:
+            print(str(exc),file=sys.stderr);return 5
+        except (SnapshotError,ValueError) as exc:
+            print(str(exc),file=sys.stderr);return 2
     if args.command == 'can-create':
         from recap.snapshot import load, SnapshotError
         from recap.verifier import VerificationError

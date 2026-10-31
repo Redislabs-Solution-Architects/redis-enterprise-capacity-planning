@@ -79,9 +79,10 @@ def test_req01_can_create_json():
 
 
 def test_req01_relative_only_for_upscale():
-    result = run("can-upscale", "--snapshot", "-", "--db", "1", "--memory", "+10GiB")
-    assert result.returncode == 2
-    assert "not implemented" in result.stderr
+    path=Path(__file__).parent/'fixtures/no-rack.json'
+    result = run("can-upscale", "--snapshot", str(path), "--db", "1", "--memory", "+10GiB")
+    assert result.returncode in (0,1)
+    assert "suffix" not in result.stderr
     result = run("can-create", "--snapshot", "-", "--memory", "+10GiB", "--shards", "2")
     assert result.returncode == 2
     assert "not implemented" not in result.stderr
