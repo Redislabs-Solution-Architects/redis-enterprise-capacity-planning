@@ -151,6 +151,9 @@ def build_parser():
 def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.command == "collect":
+        from recap.collect import run
+        return run(args)
     if args.command == "snapshot" and args.snapshot_action == "validate":
         from recap.snapshot import SnapshotError, load
         try:

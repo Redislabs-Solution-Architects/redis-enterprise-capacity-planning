@@ -5,8 +5,8 @@ Statuses: `planning`, `running`, `blocked`, `failed`, `done`, `audited`. A task 
 | Task | REQ | Status | Commit | Evidence / notes |
 |---|---|---|---|---|
 | T1 scaffold, units, CLI | REQ-01, SD-1 | done | f77b7b9 | Tests first: 38 failed before package implementation (missing recap package). Editable install succeeded. Focused suite: 38 passed in 1.86s. Whole suite: 38 passed in 1.42s. REQ-01 scenarios 2 and 3 covered; scenario 1 remains assigned to T7. |
-| T2 schema, validate, fixtures | REQ-03, SD-2 | running | | Tests first: 25 failed, 6 passed before implementation. Focused suite: 37 passed in 3.35s. Whole suite: 75 passed in 4.21s. REQ-03 scenarios: 2/2. Commit pending; checkpoint after T2. |
-| T3 collector | REQ-02 | planning | | |
+| T2 schema, validate, fixtures | REQ-03, SD-2 | done | 3c066af | Tests first: 25 failed, 6 passed before implementation. Focused suite: 37 passed in 3.35s. Whole suite: 75 passed in 4.21s. REQ-03 scenarios: 2/2. Checkpoint reached; awaiting owner review before T3. |
+| T3 collector | REQ-02 | running | | Tests-first implementation in progress. |
 | T4 capacity model | REQ-04 | planning | | |
 | T5 constraints | REQ-05 | planning | | |
 | T6 verifier | REQ-09 | planning | | |
@@ -19,6 +19,8 @@ Statuses: `planning`, `running`, `blocked`, `failed`, `done`, `audited`. A task 
 | T13 audit | all | planning | | fresh session |
 
 Open items, outside the delivery gate: P-2 (lab, owner), D-1, D-2, D-3.
+
+Owner instruction (2026-10-31): continue autonomously through T12, without the T2/T8 checkpoints. Preserve the other coordinator limits; T13 remains a fresh-session audit.
 
 ## Owner clarification and T2 evidence (2026-10-31)
 

@@ -1,0 +1,192 @@
+{
+  "/v1/cluster": {
+    "name": "upscale-steps",
+    "rs_version": "8.2.0-78",
+    "mixed_versions": false,
+    "rack_aware": true,
+    "default_shards_placement": "sparse",
+    "license": null
+  },
+  "/v1/nodes": [
+    {
+      "uid": 1,
+      "rack_id": "rack-a",
+      "second_rack_id": null,
+      "total_memory": 68719476736,
+      "provisional_ram": 0,
+      "max_redis_servers": 100,
+      "shard_count": 3,
+      "accept_servers": true,
+      "status": "active",
+      "software_version": "8.2.0-78"
+    },
+    {
+      "uid": 2,
+      "rack_id": "rack-b",
+      "second_rack_id": null,
+      "total_memory": 68719476736,
+      "provisional_ram": 10737418240,
+      "max_redis_servers": 100,
+      "shard_count": 1,
+      "accept_servers": true,
+      "status": "active",
+      "software_version": "8.2.0-78"
+    },
+    {
+      "uid": 3,
+      "rack_id": "rack-c",
+      "second_rack_id": null,
+      "total_memory": 68719476736,
+      "provisional_ram": 10737418240,
+      "max_redis_servers": 100,
+      "shard_count": 2,
+      "accept_servers": true,
+      "status": "active",
+      "software_version": "8.2.0-78"
+    }
+  ],
+  "/v1/bdbs": [
+    {
+      "uid": 1,
+      "name": "db-1",
+      "memory_size": 2147483648,
+      "shards_count": 1,
+      "replication": true,
+      "rack_aware": true,
+      "sharding": false,
+      "shard_key_regex": [],
+      "shards_placement": "sparse",
+      "bigstore": false,
+      "crdt": false,
+      "unsupported_reason": null
+    },
+    {
+      "uid": 2,
+      "name": "db-2",
+      "memory_size": 2147483648,
+      "shards_count": 1,
+      "replication": true,
+      "rack_aware": true,
+      "sharding": false,
+      "shard_key_regex": [],
+      "shards_placement": "sparse",
+      "bigstore": false,
+      "crdt": false,
+      "unsupported_reason": null
+    },
+    {
+      "uid": 3,
+      "name": "db-3",
+      "memory_size": 4294967296,
+      "shards_count": 1,
+      "replication": true,
+      "rack_aware": true,
+      "sharding": false,
+      "shard_key_regex": [],
+      "shards_placement": "sparse",
+      "bigstore": false,
+      "crdt": false,
+      "unsupported_reason": null
+    }
+  ],
+  "/v1/shards": [
+    {
+      "uid": 1,
+      "bdb_uid": 1,
+      "node_uid": 1,
+      "role": "master",
+      "slots": "0-16383",
+      "used_memory": 16777216,
+      "assigned_slots": "0-16383"
+    },
+    {
+      "uid": 2,
+      "bdb_uid": 1,
+      "node_uid": 2,
+      "role": "slave",
+      "slots": "0-16383",
+      "used_memory": 16777216,
+      "assigned_slots": "0-16383"
+    },
+    {
+      "uid": 3,
+      "bdb_uid": 2,
+      "node_uid": 3,
+      "role": "master",
+      "slots": "0-16383",
+      "used_memory": 16777216,
+      "assigned_slots": "0-16383"
+    },
+    {
+      "uid": 4,
+      "bdb_uid": 2,
+      "node_uid": 1,
+      "role": "slave",
+      "slots": "0-16383",
+      "used_memory": 16777216,
+      "assigned_slots": "0-16383"
+    },
+    {
+      "uid": 5,
+      "bdb_uid": 3,
+      "node_uid": 3,
+      "role": "master",
+      "slots": "0-16383",
+      "used_memory": 16777216,
+      "assigned_slots": "0-16383"
+    },
+    {
+      "uid": 6,
+      "bdb_uid": 3,
+      "node_uid": 1,
+      "role": "slave",
+      "slots": "0-16383",
+      "used_memory": 16777216,
+      "assigned_slots": "0-16383"
+    }
+  ],
+  "/v1/nodes/stats/last": [
+    {
+      "uid": 1,
+      "provisional_memory": 0
+    },
+    {
+      "uid": 2,
+      "provisional_memory": 10737418240
+    },
+    {
+      "uid": 3,
+      "provisional_memory": 10737418240
+    }
+  ],
+  "/v1/shards/stats/last": [
+    {
+      "uid": 1,
+      "used_memory": 16777216
+    },
+    {
+      "uid": 2,
+      "used_memory": 16777216
+    },
+    {
+      "uid": 3,
+      "used_memory": 16777216
+    },
+    {
+      "uid": 4,
+      "used_memory": 16777216
+    },
+    {
+      "uid": 5,
+      "used_memory": 16777216
+    },
+    {
+      "uid": 6,
+      "used_memory": 16777216
+    }
+  ],
+  "/v1/usage_report": {
+    "ram_shards_limit": 100,
+    "ram_shards_in_use": 6
+  }
+}
