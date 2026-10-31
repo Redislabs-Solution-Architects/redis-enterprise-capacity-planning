@@ -156,6 +156,19 @@ recap's database-scope optimization have different operational objectives.
 
 ## Export a report
 
+For a visual HTML dashboard:
+
+```bash
+recap report --snapshot /path/to/snapshot.json --format html --out /path/outside/repository/capacity-report.html --open
+```
+
+The standalone file contains charts and tables with no external dependencies.
+Open plan disclosures to inspect the exported steps. Omit `--open` for unattended
+generation, or omit `--out` to write HTML to stdout. See [visual reports](visual-report.md)
+for reading the charts and printing a PDF.
+
+For Markdown:
+
 ```bash
 recap report --snapshot /path/to/snapshot.json --format markdown > /path/outside/repository/capacity-report.md
 ```

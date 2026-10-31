@@ -38,6 +38,16 @@ recap can-upscale --snapshot tests/fixtures/upscale-steps.json --db 1 --memory +
 recap report --snapshot tests/fixtures/no-rack.json --format markdown
 ```
 
+For a visual capacity dashboard, generate a standalone HTML report and open it:
+
+```bash
+recap report --snapshot tests/fixtures/upscale-steps.json --ladder '6GiB:1' --format html --out /tmp/recap-report.html --open
+```
+
+The report includes node RAM/slot charts, rack capacity, create/upscale verdicts,
+expandable plans and provenance warnings. It works offline without Grafana, a web
+server or external assets. See the [visual report guide](docs/visual-report.md).
+
 A negative feasibility answer exits with code `1`; it is a result, not a CLI
 failure. Sizes require a suffix: `50GiB` is valid, while bare `50` is rejected.
 `G` means GiB, while `GB` is decimal. Human output uses GiB; JSON uses bytes.
@@ -59,6 +69,7 @@ before configuring certificates or accepting a partial snapshot.
 |---|---|
 | [Getting started](docs/getting-started.md) | A complete offline walkthrough with expected results |
 | [Operating guide](docs/operating-guide.md) | Collect snapshots, investigate constraints and prepare changes |
+| [Visual report](docs/visual-report.md) | Generate, inspect, share and print an offline HTML dashboard |
 | [CLI reference](docs/cli-reference.md) | Commands, flags, defaults, verdicts and exit codes |
 | [Capacity model and limitations](docs/capacity-model.md) | How placement works and how to interpret its limits |
 | [Development](docs/development.md) | Run tests, inspect fixtures and reproduce historical POC comparisons |

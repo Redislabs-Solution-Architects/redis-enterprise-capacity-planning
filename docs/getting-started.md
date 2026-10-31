@@ -93,12 +93,16 @@ nodes. REST rendering uses `{url}` and environment-variable credential placehold
 ## 7. Produce a shareable report
 
 ```bash
-recap report --snapshot tests/fixtures/no-rack.json --format markdown
+recap report --snapshot tests/fixtures/upscale-steps.json --ladder '6GiB:1' --format html --out /tmp/recap-report.html --open
 ```
 
-Expected result: exit `0`, with node/rack capacity, create/upscale ladders,
-unsupported targets and provenance warnings. Individual ladder rows may be
-infeasible even though report generation succeeds.
+Expected result: exit `0`, with a local HTML file and a browser showing node RAM
+and slot charts, rack capacity, create/upscale ladders and provenance warnings.
+Expand an upscale plan to inspect the exported commands. The file is standalone
+and can be viewed offline. Omit `--open` when generating on a machine without a browser.
+
+Individual ladder rows may be infeasible even though report generation succeeds.
+For a ticket-friendly text version, use `recap report --snapshot tests/fixtures/no-rack.json --format markdown`.
 
 Continue with the [operating guide](operating-guide.md) to collect a real snapshot,
 or the [CLI reference](cli-reference.md) to choose other flags.

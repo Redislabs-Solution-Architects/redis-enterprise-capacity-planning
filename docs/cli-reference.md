@@ -8,7 +8,7 @@ Run `recap COMMAND --help` for parser-generated help. For optimization, use
 Compute commands take `--snapshot PATH`. Use `--snapshot -` to read JSON from stdin.
 They reject partial snapshots unless `--allow-partial` is provided.
 
-`--format text|json` defaults to `text`. `report` also accepts `markdown`. Collection
+`--format text|json` defaults to `text`. `report` also accepts `markdown` and `html`. Collection
 always writes snapshot JSON, rather than the compute-result envelope.
 
 Compute JSON includes `schema_version`, `command`, `verdict`, `reasons`, `partial`
@@ -169,11 +169,20 @@ exit code remain authoritative for this comparison.
 ## report
 
 ```text
-recap report --snapshot PATH [--ladder SIZE:N,SIZE:N,...] [--format text|json|markdown] [--allow-partial]
+recap report --snapshot PATH [--ladder SIZE:N,SIZE:N,...] [--format text|json|markdown|html] [--allow-partial]
+recap report --snapshot PATH --format html --out PATH [--open] [--allow-partial]
 ```
 
 Outputs cluster/version/license summary, node and rack capacity, replicated
 can-create ladder, supported replicated database upscale ladder, unsupported
 entries and provenance warnings. Report generation exits `0` even when ladder
 entries are infeasible. Text output is table-formatted; Markdown is suitable for
-pasting into a ticket. Use JSON for machine processing.
+pasting into a ticket. Use JSON for machine processing and HTML for a standalone
+visual report with charts, tables and expandable plans.
+
+`--out PATH` writes HTML as UTF-8. Without it, or with `--out -`, HTML goes to stdout.
+`--out` is currently HTML-only and cannot overwrite the input snapshot. The parent
+directory must already exist. `--open` requires `--format html --out PATH` and opens
+the completed local file after successful calculation and verification. A browser
+launch failure prints a warning and leaves the generated report usable. Other
+formats and the default text output are unchanged.
