@@ -6,3 +6,7 @@ __pycache__/
 .venv/
 build/
 dist/
+
+# Local planning work; keep it out of the published repository.
+/docs/spec-v2.md
+/docs/agent-plans/

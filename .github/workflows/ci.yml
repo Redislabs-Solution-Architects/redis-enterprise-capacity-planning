@@ -14,6 +14,13 @@ jobs:
           cache: pip
       - run: pip install -e '.[test]'
       - run: pytest -q
+      - name: Keep local planning files out of the repository
+        run: |
+          recap_local_docs="$(git ls-files -- docs/spec-v2.md docs/agent-plans/)"
+          if [ -n "$recap_local_docs" ]; then
+            echo 'Local planning documents must not be tracked.' >&2
+            exit 1
+          fi
       - name: No Redis runtime
         run: |
           if grep -rE 'redis-cli|EVAL|flushdb' src/; then exit 1; else test "$?" -eq 1; fi
