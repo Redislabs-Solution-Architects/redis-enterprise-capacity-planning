@@ -8,9 +8,9 @@ Statuses: `planning`, `running`, `blocked`, `failed`, `done`, `audited`. A task 
 | T2 schema, validate, fixtures | REQ-03, SD-2 | done | 3c066af | Tests first: 25 failed, 6 passed before implementation. Focused suite: 37 passed in 3.35s. Whole suite: 75 passed in 4.21s. REQ-03 scenarios: 2/2. Checkpoint reached; awaiting owner review before T3. |
 | T3 collector | REQ-02 | done | f712edd | Red: 6 failed. Focused: 6 passed in 1.10s. Whole suite: 81 passed in 3.91s. REQ-02: 4/4 scenarios. |
 | T4 capacity model | REQ-04 | done | effde8c | Red: 8 failed. Focused: 8 passed in 0.11s. Whole suite: 89 passed in 4.13s. REQ-04: 3/3 scenarios. |
-| T5 constraints | REQ-05 | running | | Tests-first implementation in progress. |
-| T6 verifier | REQ-09 | planning | | |
-| T7 can-create | REQ-06 | planning | | |
+| T5 constraints | REQ-05 | done | 24321f1 | Red: 7 failed. Focused: 7 passed in 0.11s. Whole suite: 96 passed in 3.69s. REQ-05 scenario 3; scenarios 1/2 and property proof in T7. |
+| T6 verifier | REQ-09 | done | pending-sha | Red: 2 failed. Focused: 2 passed in 0.22s. Whole suite: 98 passed in 4.08s. Injected faulty planner rejected in CLI output path. |
+| T7 can-create | REQ-06 | running | | Tests-first implementation in progress. |
 | T8 optimize | REQ-08 | planning | | checkpoint |
 | T9 can-upscale | REQ-07 | planning | | |
 | T10 cross-check | REQ-10 | planning | | |

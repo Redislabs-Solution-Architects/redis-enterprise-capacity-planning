@@ -63,10 +63,19 @@ def test_req01_subcommand_help(command):
     assert run(command, "--help").returncode == 0
 
 
-def test_req01_unimplemented_handler():
-    result = run("can-create", "--snapshot", "-", "--memory", "50GiB", "--shards", "2")
-    assert result.returncode == 2
-    assert "not implemented" in result.stderr
+def test_req01_can_create_json():
+    """Given: the fixture snapshot from REQ-03
+    When: `recap can-create --snapshot tests/fixtures/poc-5-nodes.json --memory 50GiB --shards 2 --replication --format json`
+    Then: the process exits 0 or 1; stdout parses against the output JSON Schema; `verdict` is `feasible` exactly when the exit code is 0; and `reasons[]` is non-empty when the exit code is 1.
+    """
+    from jsonschema import Draft202012Validator
+    root=Path(__file__).parents[1]
+    result=run('can-create','--snapshot',str(root/'tests/fixtures/poc-5-nodes.json'),'--memory','50GiB','--shards','2','--replication','--format','json')
+    assert result.returncode in (0,1), result.stderr
+    output=json.loads(result.stdout)
+    Draft202012Validator(json.loads((root/'src/recap/schemas/output.v1.json').read_text())).validate(output)
+    assert (output['verdict']=='feasible') == (result.returncode==0)
+    assert result.returncode==0 or output['reasons']
 
 
 def test_req01_relative_only_for_upscale():

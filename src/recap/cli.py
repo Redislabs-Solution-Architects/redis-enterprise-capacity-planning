@@ -182,6 +182,20 @@ def main(argv=None):
     if args.command == "collect":
         from recap.collect import run
         return run(args)
+    if args.command == 'can-create':
+        from recap.snapshot import load, SnapshotError
+        from recap.verifier import VerificationError
+        from recap.planner.create import plan
+        try:
+            snapshot=load(args.snapshot,allow_partial=args.allow_partial)
+            result=plan(snapshot,args.memory,args.shards,args.replication,args.rack_aware,args.placement)
+            return emit_plan('can-create',snapshot,result,args)
+        except VerificationError as exc:
+            print(str(exc),file=sys.stderr)
+            return 5
+        except (SnapshotError,ValueError) as exc:
+            print(str(exc),file=sys.stderr)
+            return 2
     if args.command == 'optimize':
         from recap.snapshot import load, SnapshotError
         from recap.verifier import VerificationError
