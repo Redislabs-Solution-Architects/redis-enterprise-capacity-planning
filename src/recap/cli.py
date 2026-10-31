@@ -163,12 +163,38 @@ def build_parser():
     return parser
 
 
+def optimize_plan(snapshot,args):
+    from recap.planner.optimize import plan
+    return plan(snapshot,args)
+
+
+def emit_plan(command,snapshot,result,args):
+    from recap.verifier import verify
+    success=exit_code(result['verdict'])==0
+    verify(snapshot,result.get('plan',[]),result.get('goal') if success else None)
+    return emit(command,result['verdict'],snapshot,reasons=result.get('reasons',[]),
+                plan=result.get('plan',[]),output_format=args.format,details=result.get('details'))
+
+
 def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command == "collect":
         from recap.collect import run
         return run(args)
+    if args.command == 'optimize':
+        from recap.snapshot import load, SnapshotError
+        from recap.verifier import VerificationError
+        try:
+            snapshot=load(args.snapshot,allow_partial=args.allow_partial)
+            result=optimize_plan(snapshot,args)
+            return emit_plan('optimize',snapshot,result,args)
+        except VerificationError as exc:
+            print(str(exc),file=sys.stderr)
+            return 5
+        except (SnapshotError,ValueError) as exc:
+            print(str(exc),file=sys.stderr)
+            return 2
     if args.command == "capacity":
         from recap.snapshot import SnapshotError, load
         from recap.model import capacity
